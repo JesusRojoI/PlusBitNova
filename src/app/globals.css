@@ -1,0 +1,608 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark site palette: dark backgrounds, light text, gray surfaces, light blue accents */
+    --background: 210 12% 6%;
+    --foreground: 206 60% 94%;
+    --card: 210 10% 10%;
+    --card-foreground: 206 60% 94%;
+    --popover: 210 10% 10%;
+    --popover-foreground: 206 60% 94%;
+    --primary: 204 90% 60%;
+    --primary-foreground: 210 12% 6%;
+    --secondary: 210 8% 60%;
+    --secondary-foreground: 206 60% 94%;
+    --muted: 210 8% 30%;
+    --muted-foreground: 210 8% 60%;
+    --accent: 204 90% 60%;
+    --accent-foreground: 210 12% 6%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 206 60% 94%;
+    --border: 210 8% 20%;
+    --input: 210 10% 12%;
+    --ring: 204 90% 50%;
+    --radius: 0.75rem;
+
+    --sw-navy: 210 12% 6%;
+    --sw-royal: 210 14% 12%;
+    --sw-royal-dark: 210 10% 8%;
+    --sw-coral: 352 92% 62%;
+    --sw-orange: 22 100% 63%;
+    --sw-gold: 44 86% 64%;
+    --sw-cloud: 210 8% 20%;
+    --chart-1: 43 100% 60%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 86% 64%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 210 12% 6%;
+    --foreground: 206 60% 94%;
+    --card: 210 10% 10%;
+    --card-foreground: 206 60% 94%;
+    --popover: 210 10% 10%;
+    --popover-foreground: 206 60% 94%;
+    --primary: 204 90% 60%;
+    --primary-foreground: 210 12% 6%;
+    --secondary: 210 8% 60%;
+    --secondary-foreground: 206 60% 94%;
+    --muted: 210 8% 30%;
+    --muted-foreground: 210 8% 60%;
+    --accent: 204 90% 60%;
+    --accent-foreground: 210 12% 6%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 206 60% 94%;
+    --border: 210 8% 20%;
+    --input: 210 10% 12%;
+    --ring: 204 90% 50%;
+    --chart-1: 43 100% 60%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 86% 64%;
+    --chart-5: 27 87% 67%;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-manrope), system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-inter-tight), system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-coral {
+    background-image: linear-gradient(96deg, hsl(var(--sw-coral)) 0%, hsl(var(--sw-orange)) 100%);
+    box-shadow: 0 16px 30px -12px hsl(var(--sw-coral) / 0.6);
+  }
+  .btn-coral:hover {
+    box-shadow: 0 20px 36px -10px hsl(var(--sw-coral) / 0.75);
+  }
+
+  .hero-clip {
+    clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .dot-marker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+@layer utilities {
+  .bg-royal-radial {
+    background-color: hsl(var(--sw-royal));
+    background-image:
+      radial-gradient(120% 120% at 85% 50%, hsl(244 70% 60% / 0.9) 0%, transparent 55%),
+      radial-gradient(120% 120% at 0% 100%, hsl(245 70% 12% / 0.55) 0%, transparent 50%);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  input,
+  textarea,
+  select {
+    color: #1a1a2e !important;
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af !important;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus {
+    color: #1a1a2e !important;
+  }
+
+  /* === ESTILOS DE CHECKOUT - TONOS GRISÁCEOS FRÍOS (SIN MORADO) === */
+  .checkout-page {
+    background-color: #0d0d16 !important;
+  }
+
+  .checkout-page .card-checkout {
+    background-color: #161625 !important;
+    border: 1px solid #2a2a3a !important;
+  }
+
+  .checkout-page .bg-white {
+    background-color: #161625 !important;
+    border-color: #2a2a3a !important;
+  }
+
+  .checkout-page .bg-gray-50 {
+    background-color: #0d0d16 !important;
+  }
+
+  /* === TEXTOS CLAROS === */
+  .checkout-page h1,
+  .checkout-page h2,
+  .checkout-page h3,
+  .checkout-page h4,
+  .checkout-page h5,
+  .checkout-page h6 {
+    color: #e8e8f0 !important;
+  }
+
+  .checkout-page .text-gray-900 {
+    color: #e8e8f0 !important;
+  }
+
+  .checkout-page .text-gray-700 {
+    color: #c8c8d6 !important;
+  }
+
+  .checkout-page .text-gray-600 {
+    color: #a8a8b8 !important;
+  }
+
+  .checkout-page .text-gray-500 {
+    color: #88889a !important;
+  }
+
+  .checkout-page label {
+    color: #c8c8d6 !important;
+  }
+
+  .checkout-page .text-sm {
+    color: #c8c8d6 !important;
+  }
+
+  .checkout-page .font-semibold {
+    color: #e8e8f0 !important;
+  }
+
+  .checkout-page .font-bold {
+    color: #e8e8f0 !important;
+  }
+
+  /* === CAMPOS DE FORMULARIO - GRIS NEUTRO === */
+  .checkout-page input,
+  .checkout-page textarea,
+  .checkout-page select {
+    background-color: #22223a !important;
+    border-color: #3a3a50 !important;
+    color: #eeeeF5 !important;
+  }
+
+  .checkout-page input::placeholder,
+  .checkout-page textarea::placeholder {
+    color: #88889a !important;
+  }
+
+  .checkout-page input:focus,
+  .checkout-page textarea:focus,
+  .checkout-page select:focus {
+    background-color: #22223a !important;
+    border-color: #6a7a8e !important;
+    color: #eeeeF5 !important;
+    ring-color: #6a7a8e !important;
+    outline: none !important;
+  }
+
+  /* === BORDES GRISES NEUTROS === */
+  .checkout-page .border-gray-200 {
+    border-color: #2a2a3a !important;
+  }
+
+  .checkout-page .border-gray-300 {
+    border-color: #3a3a50 !important;
+  }
+
+  .checkout-page .border-t {
+    border-color: #2a2a3a !important;
+  }
+
+  .checkout-page .border-b {
+    border-color: #2a2a3a !important;
+  }
+
+  /* === CHECKBOX GRIS NEUTRO === */
+  .checkout-page input[type="checkbox"] {
+    background-color: #22223a !important;
+    border-color: #3a3a50 !important;
+  }
+
+  .checkout-page input[type="checkbox"]:checked {
+    background-color: #6a7a8e !important;
+  }
+
+  /* === BOTONES GRISES NEUTROS === */
+  .checkout-page .bg-blue-600 {
+    background-color: #4a5a6e !important;
+  }
+
+  .checkout-page .bg-blue-600:hover {
+    background-color: #3a4a5e !important;
+  }
+
+  .checkout-page .bg-red-600 {
+    background-color: #7a4a4a !important;
+  }
+
+  .checkout-page .bg-red-600:hover {
+    background-color: #6a3a3a !important;
+  }
+
+  /* === MENSAJES === */
+  .checkout-page .error-message-box {
+    background-color: #2a1a1a !important;
+    color: #e8a0a0 !important;
+    border-color: #6a2a2a !important;
+  }
+
+  .checkout-page .success-message {
+    background-color: #1a2a1a !important;
+    color: #90d0a0 !important;
+    border-color: #2a5a3a !important;
+  }
+
+  .checkout-page .text-red-600 {
+    color: #e08080 !important;
+  }
+
+  .checkout-page .text-green-600 {
+    color: #90d0a0 !important;
+  }
+
+  .checkout-page .text-blue-600 {
+    color: #7a8a9e !important;
+  }
+
+  .checkout-page .text-blue-600:hover {
+    color: #9aaabe !important;
+  }
+
+  /* === ENLACES GRISES === */
+  .checkout-page a {
+    color: #7a8a9e !important;
+  }
+
+  .checkout-page a:hover {
+    color: #9aaabe !important;
+  }
+
+  /* === SHADOW === */
+  .checkout-page .shadow-sm {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  /* === SCROLLBAR GRIS === */
+  .checkout-page .overflow-y-auto::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .checkout-page .overflow-y-auto::-webkit-scrollbar-track {
+    background: #161625;
+  }
+
+  .checkout-page .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #3a3a50;
+    border-radius: 4px;
+  }
+
+
+  /* src/app/globals.css */
+
+/* === FORZAR EL TACHE (X) DEL CARRITO EN BLANCO === */
+button[aria-label="Eliminar"] span,
+button[aria-label="Eliminar"] {
+  color: #ffffff !important;
+  opacity: 0.8 !important;
+}
+
+button[aria-label="Eliminar"]:hover {
+  opacity: 1 !important;
+}
+/* ============================================
+   ESTILOS PARA CHECKOUT - FONDO OSCURO, TEXTO CLARO
+   ============================================ */
+
+/* Forzar fondo oscuro y texto claro en todos los inputs del checkout */
+.checkout-page input,
+.checkout-page textarea,
+.checkout-page select {
+  background-color: #1a1a2e !important;
+  color: #e8e8f0 !important;
+  -webkit-text-fill-color: #e8e8f0 !important;
+  border-color: #3a3a50 !important;
+}
+
+.checkout-page input::placeholder,
+.checkout-page textarea::placeholder {
+  color: #88889a !important;
+  -webkit-text-fill-color: #88889a !important;
+}
+
+.checkout-page input:focus,
+.checkout-page textarea:focus,
+.checkout-page select:focus {
+  background-color: #1a1a2e !important;
+  color: #e8e8f0 !important;
+  -webkit-text-fill-color: #e8e8f0 !important;
+  border-color: #6a7a8e !important;
+  outline: none !important;
+}
+
+/* ============================================
+   AUTOFILL - FONDO OSCURO Y TEXTO CLARO
+   ============================================ */
+
+/* Chrome, Safari, Edge, Opera */
+.checkout-page input:-webkit-autofill,
+.checkout-page input:-webkit-autofill:hover,
+.checkout-page input:-webkit-autofill:focus,
+.checkout-page input:-webkit-autofill:active,
+.checkout-page textarea:-webkit-autofill,
+.checkout-page textarea:-webkit-autofill:hover,
+.checkout-page textarea:-webkit-autofill:focus,
+.checkout-page textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #1a1a2e inset !important;
+  -webkit-text-fill-color: #e8e8f0 !important;
+  background-color: #1a1a2e !important;
+  background-clip: content-box !important;
+  border-color: #3a3a50 !important;
+  color: #e8e8f0 !important;
+}
+
+/* Firefox */
+.checkout-page input:-moz-autofill,
+.checkout-page textarea:-moz-autofill {
+  background-color: #1a1a2e !important;
+  color: #e8e8f0 !important;
+}
+
+/* Todos los navegadores */
+.checkout-page input:autofill,
+.checkout-page textarea:autofill {
+  background-color: #1a1a2e !important;
+  color: #e8e8f0 !important;
+}
+
+/* Transición suave para autofill */
+.checkout-page input:-webkit-autofill {
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ============================================
+   FORZAR TEXTO CLARO EN ESCRITURA MANUAL
+   ============================================ */
+
+.checkout-page input,
+.checkout-page textarea {
+  color: #e8e8f0 !important;
+  -webkit-text-fill-color: #e8e8f0 !important;
+  caret-color: #e8e8f0 !important;
+}
+
+/* Placeholders */
+.checkout-page input::placeholder,
+.checkout-page textarea::placeholder {
+  color: #88889a !important;
+  -webkit-text-fill-color: #88889a !important;
+}
+
+/* ============================================
+   LABELS Y TEXTOS EN CHECKOUT
+   ============================================ */
+
+.checkout-page label {
+  color: #c8c8d6 !important;
+}
+
+.checkout-page .text-sm {
+  color: #c8c8d6 !important;
+}
+
+.checkout-page .text-gray-500 {
+  color: #88889a !important;
+}
+
+.checkout-page .text-gray-600 {
+  color: #a8a8b8 !important;
+}
+
+.checkout-page .text-gray-700 {
+  color: #c8c8d6 !important;
+}
+
+.checkout-page .text-gray-900 {
+  color: #e8e8f0 !important;
+}
+
+.checkout-page .font-semibold {
+  color: #e8e8f0 !important;
+}
+
+.checkout-page .font-bold {
+  color: #e8e8f0 !important;
+}
+
+/* ============================================
+   CARD CHECKOUT
+   ============================================ */
+
+.checkout-page .card-checkout {
+  background-color: #161625 !important;
+  border: 1px solid #2a2a3a !important;
+}
+
+/* ============================================
+   BORDES Y SEPARADORES
+   ============================================ */
+
+.checkout-page .border-t {
+  border-color: #2a2a3a !important;
+}
+
+.checkout-page .border-b {
+  border-color: #2a2a3a !important;
+}
+
+.checkout-page .border-gray-200 {
+  border-color: #2a2a3a !important;
+}
+
+.checkout-page .border-gray-300 {
+  border-color: #3a3a50 !important;
+}
+
+/* ============================================
+   CHECKBOX
+   ============================================ */
+
+.checkout-page input[type="checkbox"] {
+  background-color: #22223a !important;
+  border-color: #3a3a50 !important;
+}
+
+.checkout-page input[type="checkbox"]:checked {
+  background-color: #6a7a8e !important;
+}
+
+/* ============================================
+   MENSAJES DE ERROR Y ÉXITO
+   ============================================ */
+
+.checkout-page .error-message-box {
+  background-color: #2a1a1a !important;
+  color: #e8a0a0 !important;
+  border-color: #6a2a2a !important;
+}
+
+.checkout-page .success-message {
+  background-color: #1a2a1a !important;
+  color: #90d0a0 !important;
+  border-color: #2a5a3a !important;
+}
+
+.checkout-page .text-red-600 {
+  color: #e08080 !important;
+}
+
+.checkout-page .text-green-600 {
+  color: #90d0a0 !important;
+}
+
+.checkout-page .text-blue-600 {
+  color: #7a8a9e !important;
+}
+
+.checkout-page .text-blue-600:hover {
+  color: #9aaabe !important;
+}
+
+/* ============================================
+   ENLACES
+   ============================================ */
+
+.checkout-page a {
+  color: #7a8a9e !important;
+}
+
+.checkout-page a:hover {
+  color: #9aaabe !important;
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+.checkout-page .overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.checkout-page .overflow-y-auto::-webkit-scrollbar-track {
+  background: #161625;
+}
+
+.checkout-page .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #3a3a50;
+  border-radius: 4px;
+}
+/* ============================================
+   ESTILOS PARA SELECT (PAÍS Y PROVINCIA)
+   ============================================ */
+
+/* Forzar fondo oscuro y texto claro en selects */
+.checkout-page select {
+  background-color: #1a1a2e !important;
+  color: #e8e8f0 !important;
+  -webkit-text-fill-color: #e8e8f0 !important;
+  border-color: #3a3a50 !important;
+  appearance: auto !important;
+}
+
+/* Estilo para las opciones dentro del select */
+.checkout-page select option {
+  background-color: #1a1a2e !important;
+  color: #e8e8f0 !important;
+  -webkit-text-fill-color: #e8e8f0 !important;
+}
+
+/* Firefox - para selects */
+.checkout-page select:-moz-focusring {
+  color: #e8e8f0 !important;
+  text-shadow: 0 0 0 #e8e8f0 !important;
+}
+
+/* Para cuando el select está enfocado */
+.checkout-page select:focus {
+  background-color: #1a1a2e !important;
+  color: #e8e8f0 !important;
+  -webkit-text-fill-color: #e8e8f0 !important;
+  border-color: #6a7a8e !important;
+  outline: none !important;
+}
+
+/* Para el texto de la opción seleccionada en Firefox */
+.checkout-page select option:checked {
+  background-color: #2a2a3a !important;
+  color: #e8e8f0 !important;
+}
+
+/* Para el hover en opciones (Chrome/Edge) */
+.checkout-page select option:hover {
+  background-color: #3a3a50 !important;
+  color: #e8e8f0 !important;
+}
+
+/* Para el dropdown en Chrome/Edge/Safari */
+.checkout-page select::-webkit-select,
+.checkout-page select::-webkit-listbox {
+  background-color: #1a1a2e !important;
+  color: #e8e8f0 !important;
+}
+}
