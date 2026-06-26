@@ -1,38 +1,25 @@
 // src/i18n/config.ts
-'use client';
-
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { loadTranslations } from '@/services/translationService';
 
-// Importar traducciones
-import esCommon from './locales/es/common.json';
-import esHeader from './locales/es/header.json';
-import esCheckout from './locales/es/checkout.json';
-import esCart from './locales/es/cart.json';
-import esPago from './locales/es/pago.json';
-
-import enCommon from './locales/en/common.json';
-import enHeader from './locales/en/header.json';
-import enCheckout from './locales/en/checkout.json';
-import enCart from './locales/en/cart.json';
-import enPago from './locales/en/pago.json';
-
-const resources = {
+// Recursos vacíos por defecto
+const defaultResources = {
   es: {
-    common: esCommon,
-    header: esHeader,
-    checkout: esCheckout,
-    cart: esCart,
-    pago: esPago,
+    common: {},
+    header: {},
+    checkout: {},
+    cart: {},
+    pago: {}
   },
   en: {
-    common: enCommon,
-    header: enHeader,
-    checkout: enCheckout,
-    cart: enCart,
-    pago: enPago,
-  },
+    common: {},
+    header: {},
+    checkout: {},
+    cart: {},
+    pago: {}
+  }
 };
 
 // Inicializar i18n
@@ -41,7 +28,7 @@ if (!i18n.isInitialized) {
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
-      resources,
+      resources: defaultResources,
       fallbackLng: 'es',
       defaultNS: 'common',
       ns: ['common', 'header', 'checkout', 'cart', 'pago'],
@@ -51,9 +38,39 @@ if (!i18n.isInitialized) {
       detection: {
         order: ['cookie', 'localStorage', 'navigator'],
         caches: ['cookie', 'localStorage'],
-        cookieMinutes: 60 * 24 * 30, // 30 días
+        cookieMinutes: 60 * 24 * 30,
+      },
+      react: {
+        useSuspense: false,
       },
     });
+
+  console.log('✅ i18n inicializado (config)');
+}
+
+// Función para cargar traducciones desde Supabase
+export async function loadTranslationsFromSupabase() {
+  try {
+    console.log('📦 Cargando traducciones desde Supabase...');
+    const resources = await loadTranslations();
+    
+    if (resources && resources.es && resources.en) {
+      // Actualizar los recursos de i18n
+      Object.keys(resources.es).forEach((ns) => {
+        if (i18n.store && i18n.store.data) {
+          i18n.store.data.es[ns] = resources.es[ns];
+          i18n.store.data.en[ns] = resources.en[ns];
+        }
+      });
+      console.log(`✅ ${Object.keys(resources.es).length} namespaces cargados`);
+      console.log(`📝 Ejemplo: header.menu = ${resources.es.header?.menu}`);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('❌ Error cargando traducciones:', error);
+    return false;
+  }
 }
 
 export default i18n;
