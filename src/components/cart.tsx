@@ -1,33 +1,74 @@
-"use client";
+'use client';
 
 import React, { useState } from "react";
 import { useCart, formatMXN } from "./cart-context";
 import { useRouter } from "next/navigation";
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft, ArrowRight, Tag } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
+
+// 📝 Textos originales en español (fallback)
+const TEXTS = {
+  emptyTitle: 'Tu carrito está vacío',
+  emptyDesc: 'Parece que no has agregado ningún servicio a tu carrito.',
+  emptyButton: 'Ver nuestros servicios',
+  back: 'Volver',
+  cartTitle: 'Carrito de Compras',
+  products: 'productos',
+  clearCart: 'Vaciar carrito',
+  product: 'Producto',
+  price: 'Precio',
+  quantity: 'Cantidad',
+  total: 'Total',
+  action: 'Acción',
+  cartTotals: 'Totales del carrito',
+  subtotal: 'Subtotal',
+  discount: 'Descuento',
+  iva: 'IVA (16%)',
+  estimatedTotal: 'Total estimado',
+  addCoupon: 'Añadir cupones',
+  couponPlaceholder: 'Ingresa tu código',
+  apply: 'Aplicar',
+  remove: 'Quitar',
+  couponApplied: 'Cupón aplicado:',
+  couponCodes: 'Códigos: DESCUENTO10, BIENVENIDO, SAFEWARE20',
+  checkout: 'Finalizar compra',
+  continueShopping: '← Seguir comprando',
+  invalidCoupon: 'Código de cupón inválido',
+  couponApplied10: '¡Cupón aplicado! 10% de descuento',
+  couponApplied500: '¡Cupón aplicado! $500 de descuento',
+  couponApplied20: '¡Cupón aplicado! 20% de descuento'
+};
 
 const Cart = () => {
   const router = useRouter();
   const { items, subtotal, iva, total, removeItem, setQty, clear } = useCart();
+  const { t } = useTranslation();
   const [couponCode, setCouponCode] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [couponMessage, setCouponMessage] = useState("");
 
+  // Función de traducción con fallback
+  const translate = (key: string): string => {
+    const value = t(key);
+    return value || TEXTS[key as keyof typeof TEXTS] || key;
+  };
+
   const handleApplyCoupon = () => {
     if (couponCode.toUpperCase() === "DESCUENTO10") {
       setDiscount(subtotal * 0.1);
       setCouponApplied(true);
-      setCouponMessage("¡Cupón aplicado! 10% de descuento");
+      setCouponMessage(translate('carrito_couponApplied10'));
     } else if (couponCode.toUpperCase() === "BIENVENIDO") {
       setDiscount(500);
       setCouponApplied(true);
-      setCouponMessage("¡Cupón aplicado! $500 de descuento");
+      setCouponMessage(translate('carrito_couponApplied500'));
     } else if (couponCode.toUpperCase() === "SAFEWARE20") {
       setDiscount(subtotal * 0.2);
       setCouponApplied(true);
-      setCouponMessage("¡Cupón aplicado! 20% de descuento");
+      setCouponMessage(translate('carrito_couponApplied20'));
     } else {
-      setCouponMessage("Código de cupón inválido");
+      setCouponMessage(translate('carrito_invalidCoupon'));
       setTimeout(() => setCouponMessage(""), 3000);
     }
   };
@@ -47,16 +88,16 @@ const Cart = () => {
             <ShoppingBag className="w-10 h-10 text-gray-400" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Tu carrito está vacío
+            {translate('carrito_emptyTitle')}
           </h1>
           <p className="text-gray-600 mb-6">
-            Parece que no has agregado ningún servicio a tu carrito.
+            {translate('carrito_emptyDesc')}
           </p>
           <button
             onClick={() => router.push("/servicios")}
             className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all hover:-translate-y-0.5 hover:shadow-lg"
           >
-            Ver nuestros servicios
+            {translate('carrito_emptyButton')}
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -75,16 +116,16 @@ const Cart = () => {
               className="flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Volver
+              {translate('carrito_back')}
             </button>
           </div>
 
           <div className="text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Carrito de Compras
+              {translate('carrito_title')}
             </h1>
             <span className="text-sm font-medium text-gray-900">
-              {items.length} productos
+              {items.length} {translate('carrito_products')}
             </span>
           </div>
 
@@ -93,7 +134,7 @@ const Cart = () => {
             className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors"
           >
             <Trash2 className="w-4 h-4" />
-            Vaciar carrito
+            {translate('carrito_clear')}
           </button>
         </div>
 
@@ -103,11 +144,11 @@ const Cart = () => {
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
             {/* Encabezado de la tabla */}
             <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-700 uppercase tracking-wider">
-              <div className="col-span-5">Producto</div>
-              <div className="col-span-2 text-center">Precio</div>
-              <div className="col-span-2 text-center">Cantidad</div>
-              <div className="col-span-2 text-center">Total</div>
-              <div className="col-span-1 text-center">Acción</div>
+              <div className="col-span-5">{translate('carrito_product')}</div>
+              <div className="col-span-2 text-center">{translate('carrito_price')}</div>
+              <div className="col-span-2 text-center">{translate('carrito_quantity')}</div>
+              <div className="col-span-2 text-center">{translate('carrito_total')}</div>
+              <div className="col-span-1 text-center">{translate('carrito_action')}</div>
             </div>
 
             {/* Lista de productos */}
@@ -188,12 +229,12 @@ const Cart = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Totales del carrito
+                {translate('carrito_totals')}
               </h3>
 
               <div className="space-y-3">
                 <div className="flex justify-between text-sm text-gray-700">
-                  <span>Subtotal</span>
+                  <span>{translate('carrito_subtotal')}</span>
                   <span className="font-semibold text-gray-900">
                     {formatMXN(subtotal)}
                   </span>
@@ -201,7 +242,7 @@ const Cart = () => {
 
                 {discount > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
-                    <span>Descuento</span>
+                    <span>{translate('carrito_discount')}</span>
                     <span className="font-semibold">
                       -{formatMXN(discount)}
                     </span>
@@ -209,7 +250,7 @@ const Cart = () => {
                 )}
 
                 <div className="flex justify-between text-sm text-gray-700">
-                  <span>IVA (16%)</span>
+                  <span>{translate('carrito_iva')}</span>
                   <span className="font-semibold text-gray-900">
                     {formatMXN(iva)}
                   </span>
@@ -217,7 +258,7 @@ const Cart = () => {
 
                 <div className="border-t-2 border-gray-200 pt-3 mt-3">
                   <div className="flex justify-between text-lg font-bold">
-                    <span className="text-gray-900">Total estimado</span>
+                    <span className="text-gray-900">{translate('carrito_estimatedTotal')}</span>
                     <span className="text-gray-900">{formatMXN(total)}</span>
                   </div>
                 </div>
@@ -227,13 +268,13 @@ const Cart = () => {
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
                   <Tag className="w-4 h-4 text-blue-600" />
-                  <span>Añadir cupones</span>
+                  <span>{translate('carrito_addCoupon')}</span>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
-                    placeholder="Ingresa tu código"
+                    placeholder={translate('carrito_couponPlaceholder')}
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
                     disabled={couponApplied}
@@ -244,14 +285,14 @@ const Cart = () => {
                       onClick={handleApplyCoupon}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
                     >
-                      Aplicar
+                      {translate('carrito_couponApply')}
                     </button>
                   ) : (
                     <button
                       onClick={handleRemoveCoupon}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors whitespace-nowrap"
                     >
-                      Quitar
+                      {translate('carrito_couponRemove')}
                     </button>
                   )}
                 </div>
@@ -271,14 +312,14 @@ const Cart = () => {
                 {couponApplied && (
                   <div className="mt-2">
                     <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                      Cupón aplicado: {couponCode}
+                      {translate('carrito_couponApplied')} {couponCode}
                     </span>
                   </div>
                 )}
 
                 <div className="mt-2">
                   <small className="text-xs text-gray-500">
-                    Códigos: DESCUENTO10, BIENVENIDO, SAFEWARE20
+                    {translate('carrito_couponCodes')}
                   </small>
                 </div>
               </div>
@@ -289,7 +330,7 @@ const Cart = () => {
                   onClick={() => router.push("/finalizar-compra")}
                   className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all hover:-translate-y-0.5 hover:shadow-lg"
                 >
-                  Finalizar compra
+                  {translate('carrito_checkout')}
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
@@ -297,7 +338,7 @@ const Cart = () => {
                   onClick={() => router.push("/servicios")}
                   className="w-full text-center text-blue-600 hover:text-blue-700 hover:underline text-sm font-medium py-2 transition-colors"
                 >
-                  ← Seguir comprando
+                  {translate('carrito_continueShopping')}
                 </button>
               </div>
             </div>

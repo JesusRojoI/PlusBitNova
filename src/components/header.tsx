@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -11,17 +11,37 @@ import {
 import { useContactModal } from "@/components/contact-modal";
 import { useCart, formatMXN } from "@/components/cart-context";
 import { LanguageSelector } from "@/components/LanguajeSelector";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const LOGO = "/logo.png";
 
+// 📝 Textos originales en español (fallback)
+const TEXTS = {
+  menu: 'Menú',
+  about: 'Acerca de nosotros',
+  services: 'Servicios',
+  payQuote: 'Paga tu Cotización',
+  letsStart: '¡Comencemos!',
+  cart: 'Carrito'
+};
+
+// 📝 Servicios con claves de traducción
 const services = [
   {
     label: "Soporte y Mantenimiento de Software",
     href: "/soporte-y-mantenimiento-de-software",
+    translationKey: 'servicios_support' // ✅ Clave para traducción
   },
-  { label: "Seguridad Informática", href: "/seguridad-informatica" },
-  { label: "Soporte Remoto y en Sitio", href: "/soporte-remoto-y-en-sitio" },
+  { 
+    label: "Seguridad Informática", 
+    href: "/seguridad-informatica",
+    translationKey: 'servicios_security' // ✅ Clave para traducción
+  },
+  { 
+    label: "Soporte Remoto y en Sitio", 
+    href: "/soporte-remoto-y-en-sitio",
+    translationKey: 'servicios_remote' // ✅ Clave para traducción
+  },
 ];
 
 export function Header() {
@@ -29,7 +49,13 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const { open: openContact } = useContactModal();
   const { count, total, openCart, hydrated } = useCart();
-  const { t } = useTranslation('header');
+  const { t } = useTranslation();
+
+  // Función de traducción con fallback
+  const translate = (key: string): string => {
+    const value = t(key);
+    return (value && value !== key) ? value : TEXTS[key as keyof typeof TEXTS] || key;
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -48,7 +74,7 @@ export function Header() {
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger
               className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-foreground transition-colors hover:bg-sw-cloud"
-              aria-label={mounted ? t('menu') : 'Menú'}
+              aria-label={translate('header_menu')}
             >
               <Menu className="h-5 w-5" />
             </SheetTrigger>
@@ -63,19 +89,19 @@ export function Header() {
                     onClick={() => setOpen(false)}
                     className="flex items-center justify-between border-b border-gray-200 py-4 font-display text-lg font-bold text-sw-navy transition-colors hover:text-primary"
                   >
-                    {mounted ? t('about') : 'Acerca de nosotros'} <ChevronRight className="h-4 w-4 opacity-60" />
+                    {translate('header_about')} <ChevronRight className="h-4 w-4 opacity-60" />
                   </Link>
                   <div className="border-b border-gray-200 py-4">
-                    <p className="font-display text-lg font-bold text-sw-navy">{mounted ? t('services') : 'Servicios'}</p>
+                    <p className="font-display text-lg font-bold text-sw-navy">{translate('header_services')}</p>
                     <ul className="mt-3 space-y-2.5">
                       {services.map((s) => (
-                        <li key={s.label}>
+                        <li key={s.href}>
                           <Link
                             href={s.href}
                             onClick={() => setOpen(false)}
                             className="block text-sm text-gray-600 transition-colors hover:text-primary"
                           >
-                            {s.label}
+                            {translate(s.translationKey)}
                           </Link>
                         </li>
                       ))}
@@ -86,7 +112,7 @@ export function Header() {
                     onClick={() => setOpen(false)}
                     className="flex w-full items-center justify-between border-b border-gray-200 py-4 text-left font-display text-lg font-bold text-sw-navy transition-colors hover:text-primary"
                   >
-                    {mounted ? t('payQuote') : 'Paga tu Cotización'} <ChevronRight className="h-4 w-4 opacity-60" />
+                    {translate('header_payQuote')} <ChevronRight className="h-4 w-4 opacity-60" />
                   </Link>
                 </nav>
                 <div className="px-7 pb-8">
@@ -97,7 +123,7 @@ export function Header() {
                     }}
                     className="w-full rounded-full border border-primary bg-transparent px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-primary transition-colors hover:bg-primary/5"
                   >
-                    {mounted ? t('letsStart') : '¡Comencemos!'}
+                    {translate('header_letsStart')}
                   </button>
                   <div className="mt-6 space-y-1 text-sm text-gray-500">
                     <p>55 5533 2511</p>
@@ -111,7 +137,7 @@ export function Header() {
           <button
             onClick={openCart}
             className="group flex items-center gap-2.5 text-foreground"
-            aria-label={mounted ? t('cart') : 'Carrito'}
+            aria-label={translate('header_cart')}
           >
             <span className="relative">
               <ShoppingBag
@@ -133,3 +159,6 @@ export function Header() {
     </header>
   );
 }
+
+// ✅ Exportación por defecto
+export default Header;

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import { ShoppingBag, Minus, Plus, Wrench, ArrowRight } from "lucide-react";
@@ -10,11 +10,28 @@ import {
 } from "@/components/ui/sheet";
 import { useCart, formatMXN } from "@/components/cart-context";
 import { useRouter } from "next/navigation";
-import { useTranslation } from "react-i18next"; // ✅ Importar traducción
+import { useTranslation } from "@/hooks/useTranslation";
+
+// 📝 Textos originales en español (fallback)
+const TEXTS = {
+  title: 'Tu carrito',
+  empty: 'Tu carrito está vacío',
+  explore: 'Explora nuestros servicios de TI y agrégalos para solicitar tu cotización.',
+  exploreButton: 'Seguir explorando',
+  remove: 'Eliminar',
+  clear: 'Vaciar carrito',
+  checkout: 'Finalizar pedido',
+  note: 'Te contactaremos para confirmar y procesar tu cotización.',
+  subtotal: 'Subtotal',
+  iva: 'IVA (16%)',
+  total: 'Total',
+  decrease: 'Disminuir',
+  increase: 'Aumentar'
+};
 
 export function CartSheet() {
   const router = useRouter();
-  const { t } = useTranslation('cart'); // ✅ Usar namespace 'cart'
+  const { t } = useTranslation();
   const [isDark, setIsDark] = useState(true);
   
   const {
@@ -36,6 +53,12 @@ export function CartSheet() {
     router.push("/carrito");
   };
 
+  // Función para "Seguir explorando"
+  const handleExplore = () => {
+    closeCart();
+    router.push("/servicios");
+  };
+
   // Alternar colores cada 2 segundos
   useEffect(() => {
     const interval = setInterval(() => {
@@ -45,18 +68,22 @@ export function CartSheet() {
     return () => clearInterval(interval);
   }, []);
 
+  // Función de traducción con fallback
+  const translate = (key: string): string => {
+    const value = t(key);
+    return value || TEXTS[key as keyof typeof TEXTS] || key;
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={(o) => (o ? openCart() : closeCart())}>
       <SheetContent
         side="right"
         className="flex w-full flex-col gap-0 border-0 p-0 sm:max-w-md"
       >
-        {/* Header con fondo blanco */}
         <SheetHeader className="flex flex-col space-y-2 sm:text-left border-b border-black/10 px-6 py-5 text-left bg-white">
           <SheetTitle className="flex items-center gap-2.5 font-display text-xl font-extrabold text-sw-navy">
             <ShoppingBag className="h-5 w-5" />
-            {t('title')} {/* ✅ Tu carrito */}
-            {/* === CONTADOR QUE ALTERNA COLORES === */}
+            {translate('cart_title')}
             <span 
               className={`rounded-full px-2 py-0.5 text-xs font-bold border transition-all duration-500 ${
                 isDark 
@@ -70,22 +97,21 @@ export function CartSheet() {
         </SheetHeader>
 
         {items.length === 0 ? (
-          // === CARRITO VACÍO - FONDO BLANCO, TEXTOS E ICONOS OSCUROS ===
           <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 py-12 text-center bg-white">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
               <ShoppingBag className="h-9 w-9 text-gray-600" />
             </div>
             <p className="font-display text-lg font-bold text-gray-800">
-              {t('empty')} {/* ✅ Tu carrito está vacío */}
+              {translate('cart_empty')}
             </p>
             <p className="max-w-xs text-sm text-gray-600">
-              {t('explore')} {/* ✅ Explora nuestros servicios... */}
+              {translate('cart_explore')}
             </p>
             <button
-              onClick={closeCart}
+              onClick={handleExplore}
               className="mt-2 rounded-full bg-blue-400 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-blue-500"
             >
-              {t('exploreButton')} {/* ✅ Seguir explorando */}
+              {translate('cart_exploreButton')}
             </button>
           </div>
         ) : (
@@ -96,7 +122,6 @@ export function CartSheet() {
                   key={item.id}
                   className="flex gap-3 rounded-xl border border-black/[0.07] bg-white p-3 shadow-sm"
                 >
-                  {/* Icono con fondo negro e icono blanco */}
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-black text-white">
                     <Wrench className="h-5 w-5 text-white" />
                   </div>
@@ -105,10 +130,9 @@ export function CartSheet() {
                       <p className="line-clamp-2 text-sm font-bold leading-snug text-sw-navy">
                         {item.title}
                       </p>
-                      {/* === TACHE (X) CON CARÁCTER ESPECIAL === */}
                       <button
                         onClick={() => removeItem(item.id)}
-                        aria-label={t('remove')} 
+                        aria-label={translate('cart_remove')}
                         className="shrink-0 text-gray-700 transition-colors hover:text-red-600 text-lg font-bold leading-none"
                       >
                         ✕
@@ -120,7 +144,7 @@ export function CartSheet() {
                     <div className="mt-2.5 flex items-center justify-between">
                       <div className="flex items-center overflow-hidden rounded-md border border-black/15">
                         <button
-                          aria-label={t('decrease') || "Disminuir"}
+                          aria-label={translate('cart_decrease')}
                           onClick={() => setQty(item.id, item.qty - 1)}
                           className="px-2 py-1.5 text-sw-navy transition-colors hover:bg-sw-cloud"
                         >
@@ -130,7 +154,7 @@ export function CartSheet() {
                           {item.qty}
                         </span>
                         <button
-                          aria-label={t('increase') || "Aumentar"}
+                          aria-label={translate('cart_increase')}
                           onClick={() => setQty(item.id, item.qty + 1)}
                           className="px-2 py-1.5 text-sw-navy transition-colors hover:bg-sw-cloud"
                         >
@@ -149,27 +173,26 @@ export function CartSheet() {
                 onClick={clear}
                 className="mx-auto mt-2 block text-xs font-semibold text-slate-400 transition-colors hover:text-red-600"
               >
-                {t('clear')} {/* ✅ Vaciar carrito */}
+                {translate('cart_clear')}
               </button>
             </div>
 
-            {/* Footer con fondo blanco */}
             <div className="space-y-3 border-t border-black/10 bg-white px-6 py-5">
               <div className="flex justify-between text-sm text-slate-600">
-                <span>{t('subtotal') || 'Subtotal'}</span> {/* ✅ Subtotal */}
+                <span>{translate('cart_subtotal')}</span>
                 <span className="font-semibold text-sw-navy">
                   {formatMXN(subtotal)}
                 </span>
               </div>
               <div className="flex justify-between text-sm text-slate-600">
-                <span>{t('iva') || 'IVA (16%)'}</span> {/* ✅ IVA (16%) */}
+                <span>{translate('cart_iva')}</span>
                 <span className="font-semibold text-sw-navy">
                   {formatMXN(iva)}
                 </span>
               </div>
               <div className="flex items-baseline justify-between border-t border-black/10 pt-3">
                 <span className="font-display text-base font-bold text-sw-navy">
-                  {t('total') || 'Total'} {/* ✅ Total */}
+                  {translate('cart_total')}
                 </span>
                 <span className="font-display text-2xl font-extrabold text-sw-navy">
                   {formatMXN(total)}
@@ -180,12 +203,12 @@ export function CartSheet() {
                 onClick={handleCheckout}
                 className="group flex w-full items-center justify-center gap-2 rounded-full bg-blue-400 py-4 text-sm font-bold uppercase tracking-wide text-white transition-all hover:bg-blue-500"
               >
-                {t('checkout')} {/* ✅ Finalizar pedido */}
+                {translate('cart_checkout')}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </button>
 
               <p className="text-center text-[11px] text-slate-400">
-                {t('note')} {/* ✅ Te contactaremos para confirmar... */}
+                {translate('cart_note')}
               </p>
             </div>
           </>

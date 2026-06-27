@@ -11,7 +11,7 @@ interface SectionLabelProps {
  * On light backgrounds the lead dot is royal blue; on dark backgrounds white.
  */
 export function SectionLabel({
-  children,
+  children,//Listo XD
   variant = "light",
   className,
 }: SectionLabelProps) {

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   createContext,
@@ -6,6 +6,7 @@ import {
   useContext,
   useMemo,
   useState,
+  useEffect,
 } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import {
@@ -20,6 +21,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 // Importar la Server Action
 import { sendCotizacionAction } from "@/app/actions/send-cotizacion";
+import { useTranslation } from "@/hooks/useTranslation";
+import { loadTranslations } from "@/services/translationService";
 
 interface ContactModalCtx {
   open: () => void;
@@ -27,6 +30,26 @@ interface ContactModalCtx {
 }
 
 const Ctx = createContext<ContactModalCtx | null>(null);
+
+// 📝 Textos originales en español (fallback)
+const TEXTS = {
+  title: 'Solicita tu cotización',
+  description: 'Dinos qué necesitas y uno de nuestros especialistas te contactará lo antes posible.',
+  successTitle: '¡Solicitud recibida!',
+  successDesc: 'Gracias por escribirnos. Te responderemos en breve.',
+  name: 'Nombre *',
+  namePlaceholder: 'Tu nombre',
+  phone: 'Teléfono',
+  phonePlaceholder: '55 0000 0000',
+  email: 'Correo electrónico *',
+  emailPlaceholder: 'tucorreo@empresa.com',
+  message: '¿Cómo podemos ayudarte? *',
+  messagePlaceholder: 'Describe brevemente lo que necesitas…',
+  submit: 'Enviar solicitud',
+  sending: 'Enviando...',
+  errorSubmit: 'Error al enviar la solicitud',
+  errorRetry: 'Error al enviar la solicitud. Intenta nuevamente.'
+};
 
 export function useContactModal() {
   const ctx = useContext(Ctx);
@@ -41,10 +64,31 @@ export function ContactModalProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [translations, setTranslations] = useState(TEXTS);
+
+  // Función de traducción con fallback
+  const translate = (key: string): string => {
+    const value = t(key);
+    return value || TEXTS[key as keyof typeof TEXTS] || key;
+  };
+
+  // Cargar traducciones al iniciar
+  useEffect(() => {
+    const loadTrans = async () => {
+      const data = await loadTranslations();
+      if (data && data.en) {
+        // Las traducciones se cargan en el hook useTranslation
+        // Solo forzamos un re-render
+        setTranslations(TEXTS);
+      }
+    };
+    loadTrans();
+  }, []);
 
   const open = useCallback(() => {
     setSubmitted(false);
@@ -68,10 +112,10 @@ export function ContactModalProvider({
       if (result.success) {
         setSubmitted(true);
       } else {
-        setError(result.error || "Error al enviar la solicitud");
+        setError(result.error || translate('contact_modal_errorSubmit'));
       }
     } catch (err) {
-      setError("Error al enviar la solicitud. Intenta nuevamente.");
+      setError(translate('contact_modal_errorRetry'));
       console.error("Error:", err);
     } finally {
       setIsLoading(false);
@@ -93,11 +137,10 @@ export function ContactModalProvider({
           <div className="bg-sw-navy px-7 py-7">
             <DialogHeader className="space-y-2 text-left">
               <DialogTitle className="font-display text-2xl font-extrabold text-white sm:text-3xl">
-                Solicita tu cotización
+                {translate('contact_modal_title')}
               </DialogTitle>
               <DialogDescription className="text-sm text-white/70">
-                Dinos qué necesitas y uno de nuestros especialistas te
-                contactará lo antes posible.
+                {translate('contact_modal_description')}
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -106,10 +149,10 @@ export function ContactModalProvider({
             <div className="flex flex-col items-center gap-3 px-7 py-12 text-center bg-sw-navy">
               <CheckCircle2 className="h-14 w-14 text-emerald-500" />
               <h3 className="font-display text-xl font-bold text-white">
-                ¡Solicitud recibida!
+                {translate('contact_modal_successTitle')}
               </h3>
               <p className="max-w-sm text-sm text-white/70">
-                Gracias por escribirnos. Te responderemos en breve.
+                {translate('contact_modal_successDesc')}
               </p>
             </div>
           ) : (
@@ -117,12 +160,12 @@ export function ContactModalProvider({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="cm-name" className="text-white/80 font-medium">
-                    Nombre *
+                    {translate('contact_modal_name')}
                   </Label>
                   <Input
                     id="cm-name"
                     name="nombre"
-                    placeholder="Tu nombre"
+                    placeholder={translate('contact_modal_namePlaceholder')}
                     required
                     className="w-full px-4 py-2 border border-white/20 rounded-lg placeholder:text-white/40 focus:border-white/50 focus:ring-2 focus:ring-white/20"
                     style={inputStyle}
@@ -130,12 +173,12 @@ export function ContactModalProvider({
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="cm-phone" className="text-white/80 font-medium">
-                    Teléfono
+                    {translate('contact_modal_phone')}
                   </Label>
                   <Input
                     id="cm-phone"
                     name="telefono"
-                    placeholder="55 0000 0000"
+                    placeholder={translate('contact_modal_phonePlaceholder')}
                     className="w-full px-4 py-2 border border-white/20 rounded-lg placeholder:text-white/40 focus:border-white/50 focus:ring-2 focus:ring-white/20"
                     style={inputStyle}
                   />
@@ -144,13 +187,13 @@ export function ContactModalProvider({
 
               <div className="space-y-1.5">
                 <Label htmlFor="cm-email" className="text-white/80 font-medium">
-                  Correo electrónico *
+                  {translate('contact_modal_email')}
                 </Label>
                 <Input
                   id="cm-email"
                   name="email"
                   type="email"
-                  placeholder="tucorreo@empresa.com"
+                  placeholder={translate('contact_modal_emailPlaceholder')}
                   required
                   className="w-full px-4 py-2 border border-white/20 rounded-lg placeholder:text-white/40 focus:border-white/50 focus:ring-2 focus:ring-white/20"
                   style={inputStyle}
@@ -159,13 +202,13 @@ export function ContactModalProvider({
 
               <div className="space-y-1.5">
                 <Label htmlFor="cm-msg" className="text-white/80 font-medium">
-                  ¿Cómo podemos ayudarte? *
+                  {translate('contact_modal_message')}
                 </Label>
                 <Textarea
                   id="cm-msg"
                   name="mensaje"
                   rows={4}
-                  placeholder="Describe brevemente lo que necesitas…"
+                  placeholder={translate('contact_modal_messagePlaceholder')}
                   required
                   className="w-full px-4 py-2 border border-white/20 rounded-lg placeholder:text-white/40 focus:border-white/50 focus:ring-2 focus:ring-white/20 resize-none"
                   style={inputStyle}
@@ -206,11 +249,11 @@ export function ContactModalProvider({
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Enviando...
+                    {translate('contact_modal_sending')}
                   </span>
                 ) : (
                   <>
-                    Enviar solicitud
+                    {translate('contact_modal_submit')}
                     <ArrowRight className="h-4 w-4 text-white/70 transition-transform group-hover:translate-x-1" />
                   </>
                 )}
@@ -222,10 +265,6 @@ export function ContactModalProvider({
 
       {/* Estilos GLOBALES para forzar color blanco siempre */}
       <style jsx global>{`
-        /* ============================================
-           FORZAR COLOR BLANCO EN INPUTS (SIEMPRE)
-           ============================================ */
-
         /* Chrome, Safari, Edge, Opera - Autofill */
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
@@ -256,10 +295,6 @@ export function ContactModalProvider({
           background-color: #1a1a2e !important;
           color: #ffffff !important;
         }
-
-        /* ============================================
-           FORZAR TEXTO BLANCO EN ESCRITURA MANUAL
-           ============================================ */
 
         /* Inputs y textareas dentro del modal */
         .bg-sw-navy input,

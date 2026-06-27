@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   createContext,
@@ -7,7 +7,8 @@ import {
   useEffect,
   useMemo,
   useState,
-} from "react";
+} from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export interface CartItem {
   id: string;
@@ -15,7 +16,7 @@ export interface CartItem {
   price: number;
   unit: string;
   qty: number;
-  metadata?: Record<string, any>; 
+  metadata?: Record<string, any>;
 }
 
 interface CartCtx {
@@ -26,7 +27,7 @@ interface CartCtx {
   total: number;
   isOpen: boolean;
   hydrated: boolean;
-  addItem: (item: Omit<CartItem, "qty">, qty?: number) => void;
+  addItem: (item: Omit<CartItem, 'qty'>, qty?: number) => void;
   removeItem: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   clear: () => void;
@@ -36,28 +37,30 @@ interface CartCtx {
 
 const Ctx = createContext<CartCtx | null>(null);
 
-const STORAGE_KEY = "safeware-cart";
+const STORAGE_KEY = 'safeware-cart';
 const IVA_RATE = 0.16;
 
+// 📝 Función para formatear moneda (sin traducción, es numérica)
 export function formatMXN(n: number): string {
-  return new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: "MXN",
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
     minimumFractionDigits: 2,
   }).format(n);
 }
 
 export function parsePrice(price: string): number {
-  return Number(price.replace(/[^0-9.]/g, "")) || 0;
+  return Number(price.replace(/[^0-9.]/g, '')) || 0;
 }
 
 export function useCart() {
   const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  if (!ctx) throw new Error('useCart must be used within CartProvider');
   return ctx;
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { language } = useTranslation();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -83,12 +86,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, hydrated]);
 
-  const addItem = useCallback((item: Omit<CartItem, "qty">, qty = 1) => {
+  const addItem = useCallback((item: Omit<CartItem, 'qty'>, qty = 1) => {
     setItems((prev) => {
       const existing = prev.find((p) => p.id === item.id);
       if (existing) {
         return prev.map((p) =>
-          p.id === item.id ? { ...p, qty: p.qty + qty } : p,
+          p.id === item.id ? { ...p, qty: p.qty + qty } : p
         );
       }
       return [...prev, { ...item, qty }];
@@ -103,7 +106,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) =>
       qty <= 0
         ? prev.filter((p) => p.id !== id)
-        : prev.map((p) => (p.id === id ? { ...p, qty } : p)),
+        : prev.map((p) => (p.id === id ? { ...p, qty } : p))
     );
   }, []);
 
@@ -119,9 +122,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           acc.subtotal += it.price * it.qty;
           return acc;
         },
-        { count: 0, subtotal: 0 },
+        { count: 0, subtotal: 0 }
       ),
-    [items],
+    [items]
   );
 
   const iva = subtotal * IVA_RATE;
@@ -157,7 +160,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       clear,
       openCart,
       closeCart,
-    ],
+    ]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

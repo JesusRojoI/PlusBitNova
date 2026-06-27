@@ -1,3 +1,5 @@
+'use client';
+
 import { ContactModalProvider } from "@/components/contact-modal";
 import { Hero } from "@/components/hero";
 import { QuienesSomos } from "@/components/quienes-somos";
@@ -15,6 +17,6 @@ export default function Home() {
         <CtaBanner />
         <PorQue />
       </main>
-    /</ContactModalProvider>
+    </ContactModalProvider>
   );
 }

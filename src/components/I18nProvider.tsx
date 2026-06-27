@@ -2,28 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
-import i18n, { loadTranslationsFromSupabase } from '@/i18n/config';
+import i18n from '@/i18n/config';
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const load = async () => {
-      console.log('🔄 I18nProvider: Cargando traducciones...');
-      
-      // Cargar traducciones desde Supabase
-      const loaded = await loadTranslationsFromSupabase();
-      
-      if (loaded) {
-        console.log('✅ I18nProvider: Traducciones cargadas');
-      } else {
-        console.warn('⚠️ I18nProvider: Usando traducciones por defecto');
-      }
-      
+    // Verificar que i18n está inicializado
+    if (i18n.isInitialized) {
       setIsReady(true);
-    };
-
-    load();
+    } else {
+      // Si no, inicializar
+      i18n.init().then(() => {
+        setIsReady(true);
+      }).catch(() => {
+        setIsReady(true); // Mostrar aunque falle
+      });
+    }
   }, []);
 
   if (!isReady) {

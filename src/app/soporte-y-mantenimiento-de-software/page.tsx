@@ -1,97 +1,126 @@
-import type { Metadata } from "next";
+'use client';
+
+import { useEffect, useState } from 'react';
 import { ServicePage, type ServicePageData } from "@/components/service/service-page";
-
-export const metadata: Metadata = {
-  title: "Soporte y Mantenimiento de Software – SafeWare",
-  description:
-    "El soporte de TI administrado adecuado puede resolver problemas comerciales y hacer que tu empresa avance.",
-};
-
-const data: ServicePageData = {
-  title: "Soporte y Mantenimiento de Software",
-  heroSubtitle:
-    "El soporte de TI administrado adecuado puede resolver problemas comerciales y hacer que tu empresa avance.",
-  heroImage: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1200&h=600&fit=crop&crop=center",
-  servicioHeading: "Soporte confiable para tecnología sin límites.",
-  servicioImage: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=500&fit=crop&crop=center",
-  servicioText: (
-    <>
-      Brindamos{" "}
-      <strong className="font-bold text-white">
-        soporte especializado y mantenimiento preventivo y correctivo
-      </strong>{" "}
-      para tus aplicaciones y sistemas. Nos enfocamos en mantener tu software
-      actualizado, seguro y eficiente, reduciendo tiempos de inactividad y
-      mejorando la productividad de tu empresa.
-    </>
-  ),
-  note: "Nuestros paquetes de servicios incluyen únicamente lo especificado en la descripción de cada uno:",
-  variant: "price",
-  services: [
-    {
-      title: "Instalación o actualización de programa básico",
-      desc: "Para equipo doméstico (navegador, antivirus o Office básico)",
-      price: "500",
-      unit: "MXN + IVA",
-    },
-    {
-      title: "Instalar/configurar software corporativo",
-      desc: "Para 2 usuarios (más licencias, configuración en red costo extra)",
-      price: "2,000",
-      unit: "MXN + IVA",
-    },
-    {
-      title: "Actualizar versión de sistema operativo",
-      desc: "Actualización completa o migración de una versión antigua a una moderna (por ejemplo Windows 10 → 11; o de Office 2016 → 2021) con configuración complementaria",
-      price: "4,000",
-      unit: "MXN + IVA",
-    },
-    {
-      title: "Falla en aplicación de oficina simple",
-      desc: "Solucionamos una falla de aplicación de oficina simple (una sola app, usuario único)",
-      price: "800",
-      unit: "MXN + IVA",
-    },
-    {
-      title: "Falla en aplicación productiva más compleja",
-      desc: "Solucionamos una falla de aplicación de más compleja (2-4 módulos, usuarios, integraciones)",
-      price: "6,000",
-      unit: "MXN + IVA",
-    },
-    {
-      title: "Problema severo",
-      desc: "Caídas, pérdida de datos, incompatibilidades en servidor",
-      price: "11,700",
-      unit: "MXN + IVA",
-    },
-    {
-      title: "Optimización básica",
-      desc: "De una computadora personal / laptop doméstica (usuario individual)",
-      price: "1,000",
-      unit: "MXN + IVA",
-    },
-    {
-      title: "Optimización computadora de oficina",
-      desc: "(empresa pequeña, 1-2 equipos) más software instalado y posibles conflictos",
-      price: "3,800",
-      unit: "MXN + IVA",
-    },
-    {
-      title: "Optimización servidor pequeño / mediano",
-      desc: "Con bases de datos leves, o sistema crítico que requiere optimización de rendimiento (configuraciones, cachés, ajustes)",
-      price: "10,000",
-      unit: "MXN + IVA",
-    },
-    {
-      title:
-        "Optimización servidor grande / ambientes empresariales con muchas aplicaciones",
-      desc: "Mucho uso, alta demanda de rendimiento, optimización profunda de base de datos, red, almacenamiento",
-      price: "18,000",
-      unit: "MXN + IVA",
-    },
-  ],
-};
+import { loadTranslations } from '@/services/translationService';
 
 export default function Page() {
+  const [translations, setTranslations] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState<'es' | 'en'>('es');
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const saved = localStorage.getItem('language') as 'es' | 'en';
+        if (saved === 'es' || saved === 'en') {
+          setLanguage(saved);
+        }
+        
+        const data = await loadTranslations();
+        console.log('📦 Traducciones cargadas en Soporte y Mantenimiento:', data);
+        setTranslations(data);
+      } catch (error) {
+        console.error('❌ Error cargando traducciones:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const t = (key: string): string => {
+    if (!translations) return key;
+    const lang = language || 'es';
+    const ns = 'common';
+    const value = translations[lang]?.[ns]?.[key];
+    return value || key;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4 flex items-center justify-center">
+        <div className="text-gray-500">Cargando...</div>
+      </div>
+    );
+  }
+
+  const data: ServicePageData = {
+    title: t('servicio_support_title'),
+    heroSubtitle: t('servicio_support_heroSubtitle'),
+    heroImage: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1200&h=600&fit=crop&crop=center",
+    servicioHeading: t('servicio_support_heading'),
+    servicioImage: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=500&fit=crop&crop=center",
+    servicioText: (
+      <>
+        {t('servicio_support_text')}
+      </>
+    ),
+    note: t('servicio_support_note'),
+    variant: "price" as const,
+    services: [
+      {
+        title: t('servicio_support_service1_title'),
+        desc: t('servicio_support_service1_desc'),
+        price: "500",
+        unit: t('servicio_support_price') || "MXN + IVA",
+      },
+      {
+        title: t('servicio_support_service2_title'),
+        desc: t('servicio_support_service2_desc'),
+        price: "2,000",
+        unit: t('servicio_support_price') || "MXN + IVA",
+      },
+      {
+        title: t('servicio_support_service3_title'),
+        desc: t('servicio_support_service3_desc'),
+        price: "4,000",
+        unit: t('servicio_support_price') || "MXN + IVA",
+      },
+      {
+        title: t('servicio_support_service4_title'),
+        desc: t('servicio_support_service4_desc'),
+        price: "800",
+        unit: t('servicio_support_price') || "MXN + IVA",
+      },
+      {
+        title: t('servicio_support_service5_title'),
+        desc: t('servicio_support_service5_desc'),
+        price: "6,000",
+        unit: t('servicio_support_price') || "MXN + IVA",
+      },
+      {
+        title: t('servicio_support_service6_title'),
+        desc: t('servicio_support_service6_desc'),
+        price: "11,700",
+        unit: t('servicio_support_price') || "MXN + IVA",
+      },
+      {
+        title: t('servicio_support_service7_title'),
+        desc: t('servicio_support_service7_desc'),
+        price: "1,000",
+        unit: t('servicio_support_price') || "MXN + IVA",
+      },
+      {
+        title: t('servicio_support_service8_title'),
+        desc: t('servicio_support_service8_desc'),
+        price: "3,800",
+        unit: t('servicio_support_price') || "MXN + IVA",
+      },
+      {
+        title: t('servicio_support_service9_title'),
+        desc: t('servicio_support_service9_desc'),
+        price: "10,000",
+        unit: t('servicio_support_price') || "MXN + IVA",
+      },
+      {
+        title: t('servicio_support_service10_title'),
+        desc: t('servicio_support_service10_desc'),
+        price: "18,000",
+        unit: t('servicio_support_price') || "MXN + IVA",
+      },
+    ],
+  };
+
   return <ServicePage data={data} />;
 }

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from "react";
 import { useCart, formatMXN } from "@/components/cart-context";
@@ -11,17 +11,20 @@ import {
 } from "@/services/octano-api";
 import { CreditCard, Lock, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
+import { useTranslation } from "@/hooks/useTranslation";
+import { loadTranslations } from "@/services/translationService";
 
-// ✅ Asegúrate de que el componente esté definido con nombre
 const CheckoutPage = () => {
   const router = useRouter();
   const { items, subtotal, iva, total, clear } = useCart();
+  const { t, language } = useTranslation();
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [showCoupon, setShowCoupon] = useState(false);
   const [couponMessage, setCouponMessage] = useState("");
+  const [translations, setTranslations] = useState<any>(null);
   
   // Datos del formulario
   const [formData, setFormData] = useState({
@@ -51,6 +54,15 @@ const CheckoutPage = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Cargar traducciones al iniciar
+  useEffect(() => {
+    const loadTrans = async () => {
+      const data = await loadTranslations();
+      setTranslations(data);
+    };
+    loadTrans();
+  }, [language]);
+
   // Redirigir si el carrito está vacío
   useEffect(() => {
     if (items.length === 0 && !success) {
@@ -64,25 +76,25 @@ const CheckoutPage = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.nombre.trim()) newErrors.nombre = "El nombre es requerido";
-    if (!formData.apellidos.trim()) newErrors.apellidos = "Los apellidos son requeridos";
-    if (!formData.calle.trim()) newErrors.calle = "La calle es requerida";
-    if (!formData.poblacion.trim()) newErrors.poblacion = "La población es requerida";
-    if (!formData.codigoPostal.trim()) newErrors.codigoPostal = "El código postal es requerido";
+    if (!formData.nombre.trim()) newErrors.nombre = t('checkout_errorNameRequired') || "El nombre es requerido";
+    if (!formData.apellidos.trim()) newErrors.apellidos = t('checkout_errorLastNameRequired') || "Los apellidos son requeridos";
+    if (!formData.calle.trim()) newErrors.calle = t('checkout_errorAddressRequired') || "La calle es requerida";
+    if (!formData.poblacion.trim()) newErrors.poblacion = t('checkout_errorCityRequired') || "La población es requerida";
+    if (!formData.codigoPostal.trim()) newErrors.codigoPostal = t('checkout_errorPostalRequired') || "El código postal es requerido";
     if (!formData.email.trim()) {
-      newErrors.email = "El email es requerido";
+      newErrors.email = t('checkout_errorEmailRequired') || "El email es requerido";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Email inválido";
+      newErrors.email = t('checkout_errorEmailInvalid') || "Email inválido";
     }
 
     const cleanCard = cardData.numero.replace(/\s/g, "");
-    if (!cardData.nombreTarjeta.trim()) newErrors.nombreTarjeta = "Nombre en tarjeta requerido";
-    if (!cleanCard || cleanCard.length < 16) newErrors.numero = "Número de tarjeta inválido";
+    if (!cardData.nombreTarjeta.trim()) newErrors.nombreTarjeta = t('checkout_errorCardNameRequired') || "Nombre en tarjeta requerido";
+    if (!cleanCard || cleanCard.length < 16) newErrors.numero = t('checkout_errorCardNumberInvalid') || "Número de tarjeta inválido";
     if (!cardData.expiracion || cardData.expiracion.length < 5) {
-      newErrors.expiracion = "Fecha de expiración inválida";
+      newErrors.expiracion = t('checkout_errorExpirationInvalid') || "Fecha de expiración inválida";
     }
-    if (!cardData.cvc || cardData.cvc.length < 3) newErrors.cvc = "CVC inválido";
-    if (!formData.aceptaTerminos) newErrors.aceptaTerminos = "Debes aceptar los términos y condiciones";
+    if (!cardData.cvc || cardData.cvc.length < 3) newErrors.cvc = t('checkout_errorCVCInvalid') || "CVC inválido";
+    if (!formData.aceptaTerminos) newErrors.aceptaTerminos = t('checkout_errorTermsRequired') || "Debes aceptar los términos y condiciones";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -130,11 +142,11 @@ const CheckoutPage = () => {
 
   const handleApplyCoupon = () => {
     if (formData.cupon.toUpperCase() === "DESCUENTO10") {
-      setCouponMessage("¡Cupón aplicado! 10% de descuento");
+      setCouponMessage(t('checkout_couponApplied10') || "¡Cupón aplicado! 10% de descuento");
     } else if (formData.cupon.toUpperCase() === "BIENVENIDO") {
-      setCouponMessage("¡Cupón aplicado! $500 de descuento");
+      setCouponMessage(t('checkout_couponApplied500') || "¡Cupón aplicado! $500 de descuento");
     } else {
-      setCouponMessage("Código de cupón inválido");
+      setCouponMessage(t('checkout_couponInvalid') || "Código de cupón inválido");
       setTimeout(() => setCouponMessage(""), 3000);
     }
   };
@@ -240,13 +252,13 @@ const CheckoutPage = () => {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-4 checkout-page">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Carrito vacío</h2>
-          <p className="mb-4">No hay productos para finalizar la compra.</p>
+          <h2 className="text-2xl font-bold mb-2">{t('checkout_emptyTitle') || 'Carrito vacío'}</h2>
+          <p className="mb-4">{t('checkout_emptyDesc') || 'No hay productos para finalizar la compra.'}</p>
           <button
             onClick={() => router.push("/servicios")}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Ver servicios
+            {t('checkout_emptyButton') || 'Ver servicios'}
           </button>
         </div>
       </div>
@@ -258,19 +270,19 @@ const CheckoutPage = () => {
     <div className="min-h-screen py-8 px-4 checkout-page">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-2xl md:text-3xl font-bold mb-6">
-          Finalizar Compra
+          {t('checkout_title') || 'Finalizar Compra'}
         </h1>
 
         {success && (
           <div className="mb-6 p-4 rounded-lg border flex items-center gap-3 success-message">
             <CheckCircle className="w-5 h-5 flex-shrink-0" />
-            <span>¡Pedido realizado con éxito! Redirigiendo...</span>
+            <span>{t('checkout_successMessage') || '¡Pedido realizado con éxito! Redirigiendo...'}</span>
           </div>
         )}
 
         {error && (
           <div className="mb-6 p-4 rounded-lg border error-message-box">
-            <strong>Error:</strong> {error}
+            <strong>{t('checkout_error') || 'Error:'}</strong> {error}
           </div>
         )}
 
@@ -279,13 +291,13 @@ const CheckoutPage = () => {
           <div className="lg:col-span-2 space-y-6">
             <div className="rounded-xl shadow-sm p-6 card-checkout">
               <h2 className="text-lg font-bold mb-4">
-                Detalles de facturación
+                {t('checkout_billing') || 'Detalles de facturación'}
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Nombre *
+                    {t('checkout_firstName') || 'Nombre *'}
                   </label>
                   <input
                     type="text"
@@ -295,7 +307,7 @@ const CheckoutPage = () => {
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       errors.nombre ? "border-red-500" : "border-gray-300"
                     }`}
-                    placeholder="Nombre"
+                    placeholder={t('checkout_firstNamePlaceholder') || 'Nombre'}
                   />
                   {errors.nombre && (
                     <span className="text-sm text-red-600 error-message">{errors.nombre}</span>
@@ -304,7 +316,7 @@ const CheckoutPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Apellidos *
+                    {t('checkout_lastName') || 'Apellidos *'}
                   </label>
                   <input
                     type="text"
@@ -314,7 +326,7 @@ const CheckoutPage = () => {
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       errors.apellidos ? "border-red-500" : "border-gray-300"
                     }`}
-                    placeholder="Apellidos"
+                    placeholder={t('checkout_lastNamePlaceholder') || 'Apellidos'}
                   />
                   {errors.apellidos && (
                     <span className="text-sm text-red-600 error-message">{errors.apellidos}</span>
@@ -324,7 +336,7 @@ const CheckoutPage = () => {
 
               <div className="mt-4">
                 <label className="block text-sm font-medium mb-1">
-                  País / Región *
+                  {t('checkout_country') || 'País / Región *'}
                 </label>
                 <select
                   name="pais"
@@ -340,7 +352,7 @@ const CheckoutPage = () => {
 
               <div className="mt-4">
                 <label className="block text-sm font-medium mb-1">
-                  Dirección de la calle *
+                  {t('checkout_address') || 'Dirección de la calle *'}
                 </label>
                 <input
                   type="text"
@@ -350,7 +362,7 @@ const CheckoutPage = () => {
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.calle ? "border-red-500" : "border-gray-300"
                   }`}
-                  placeholder="Nombre de la calle y número de la casa"
+                  placeholder={t('checkout_addressPlaceholder') || 'Nombre de la calle y número de la casa'}
                 />
                 {errors.calle && (
                   <span className="text-sm text-red-600 error-message">{errors.calle}</span>
@@ -364,14 +376,14 @@ const CheckoutPage = () => {
                   value={formData.apartamento}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Apartamento, habitación, escalera, etc. (opcional)"
+                  placeholder={t('checkout_apartment') || 'Apartamento, habitación, escalera, etc. (opcional)'}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Población *
+                    {t('checkout_city') || 'Población *'}
                   </label>
                   <input
                     type="text"
@@ -381,7 +393,7 @@ const CheckoutPage = () => {
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       errors.poblacion ? "border-red-500" : "border-gray-300"
                     }`}
-                    placeholder="Población"
+                    placeholder={t('checkout_cityPlaceholder') || 'Población'}
                   />
                   {errors.poblacion && (
                     <span className="text-sm text-red-600 error-message">{errors.poblacion}</span>
@@ -390,7 +402,7 @@ const CheckoutPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Región / Provincia *
+                    {t('checkout_state') || 'Región / Provincia *'}
                   </label>
                   <select
                     name="provincia"
@@ -411,7 +423,7 @@ const CheckoutPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Código postal / ZIP *
+                    {t('checkout_postal') || 'Código postal / ZIP *'}
                   </label>
                   <input
                     type="text"
@@ -421,7 +433,7 @@ const CheckoutPage = () => {
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       errors.codigoPostal ? "border-red-500" : "border-gray-300"
                     }`}
-                    placeholder="Código postal"
+                    placeholder={t('checkout_postalPlaceholder') || 'Código postal'}
                   />
                   {errors.codigoPostal && (
                     <span className="text-sm text-red-600 error-message">{errors.codigoPostal}</span>
@@ -430,7 +442,7 @@ const CheckoutPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Teléfono (opcional)
+                    {t('checkout_phone') || 'Teléfono (opcional)'}
                   </label>
                   <input
                     type="tel"
@@ -438,14 +450,14 @@ const CheckoutPage = () => {
                     value={formData.telefono}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Teléfono"
+                    placeholder={t('checkout_phonePlaceholder') || 'Teléfono'}
                   />
                 </div>
               </div>
 
               <div className="mt-4">
                 <label className="block text-sm font-medium mb-1">
-                  Dirección de correo electrónico *
+                  {t('checkout_email') || 'Dirección de correo electrónico *'}
                 </label>
                 <input
                   type="email"
@@ -455,7 +467,7 @@ const CheckoutPage = () => {
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.email ? "border-red-500" : "border-gray-300"
                   }`}
-                  placeholder="correo@ejemplo.com"
+                  placeholder={t('checkout_emailPlaceholder') || 'correo@ejemplo.com'}
                 />
                 {errors.email && (
                   <span className="text-sm text-red-600 error-message">{errors.email}</span>
@@ -464,7 +476,7 @@ const CheckoutPage = () => {
 
               <div className="mt-4">
                 <label className="block text-sm font-medium mb-1">
-                  Notas del pedido (opcional)
+                  {t('checkout_notes') || 'Notas del pedido (opcional)'}
                 </label>
                 <textarea
                   name="notas"
@@ -472,7 +484,7 @@ const CheckoutPage = () => {
                   onChange={handleInputChange}
                   rows={3}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Notas sobre tu pedido, por ejemplo, notas especiales para la entrega."
+                  placeholder={t('checkout_notesPlaceholder') || 'Notas sobre tu pedido, por ejemplo, notas especiales para la entrega.'}
                 />
               </div>
             </div>
@@ -482,7 +494,9 @@ const CheckoutPage = () => {
           <div className="lg:col-span-1 space-y-6">
             {/* Resumen del pedido */}
             <div className="rounded-xl shadow-sm p-6 card-checkout">
-              <h2 className="text-lg font-bold mb-4">Tu pedido</h2>
+              <h2 className="text-lg font-bold mb-4">
+                {t('checkout_orderSummary') || 'Tu pedido'}
+              </h2>
 
               <div className="max-h-60 overflow-y-auto space-y-3">
                 {items.map((item) => (
@@ -499,15 +513,15 @@ const CheckoutPage = () => {
 
               <div className="mt-4 pt-4 border-t space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Subtotal</span>
+                  <span>{t('checkout_subtotal') || 'Subtotal'}</span>
                   <span className="font-semibold">{formatMXN(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>+ IVA 16%</span>
+                  <span>{t('checkout_iva') || '+ IVA 16%'}</span>
                   <span className="font-semibold">{formatMXN(iva)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                  <span>Total</span>
+                  <span>{t('checkout_total') || 'Total'}</span>
                   <span>{formatMXN(total)}</span>
                 </div>
               </div>
@@ -522,12 +536,12 @@ const CheckoutPage = () => {
                   {showCoupon ? (
                     <>
                       <ChevronUp className="w-4 h-4" />
-                      Ocultar cupón
+                      {t('checkout_couponHide') || 'Ocultar cupón'}
                     </>
                   ) : (
                     <>
                       <ChevronDown className="w-4 h-4" />
-                      ¿Tienes un cupón? Haz clic aquí
+                      {t('checkout_couponShow') || '¿Tienes un cupón? Haz clic aquí'}
                     </>
                   )}
                 </button>
@@ -539,7 +553,7 @@ const CheckoutPage = () => {
                       name="cupon"
                       value={formData.cupon}
                       onChange={handleInputChange}
-                      placeholder="Código de cupón"
+                      placeholder={t('checkout_couponPlaceholder') || 'Código de cupón'}
                       className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <button
@@ -547,7 +561,7 @@ const CheckoutPage = () => {
                       onClick={handleApplyCoupon}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                     >
-                      Aplicar
+                      {t('checkout_couponApply') || 'Aplicar'}
                     </button>
                   </div>
                 )}
@@ -566,14 +580,14 @@ const CheckoutPage = () => {
               <div className="flex items-center gap-2 mb-4">
                 <CreditCard className="w-5 h-5" />
                 <h3 className="text-base font-bold">
-                  Tarjeta de Crédito o débito
+                  {t('checkout_cardTitle') || 'Tarjeta de Crédito o débito'}
                 </h3>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Nombre en la tarjeta
+                    {t('checkout_cardName') || 'Nombre en la tarjeta'}
                   </label>
                   <input
                     type="text"
@@ -583,7 +597,7 @@ const CheckoutPage = () => {
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       errors.nombreTarjeta ? "border-red-500" : "border-gray-300"
                     }`}
-                    placeholder="Nombre en la tarjeta"
+                    placeholder={t('checkout_cardNamePlaceholder') || 'Nombre en la tarjeta'}
                   />
                   {errors.nombreTarjeta && (
                     <span className="text-sm text-red-600 error-message">{errors.nombreTarjeta}</span>
@@ -592,7 +606,7 @@ const CheckoutPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Número de tarjeta
+                    {t('checkout_cardNumber') || 'Número de tarjeta'}
                   </label>
                   <input
                     type="text"
@@ -603,7 +617,7 @@ const CheckoutPage = () => {
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       errors.numero ? "border-red-500" : "border-gray-300"
                     }`}
-                    placeholder="1234 5678 9012 3456"
+                    placeholder={t('checkout_cardNumberPlaceholder') || '1234 5678 9012 3456'}
                   />
                   {errors.numero && (
                     <span className="text-sm text-red-600 error-message">{errors.numero}</span>
@@ -613,7 +627,7 @@ const CheckoutPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      MM/AA
+                      {t('checkout_cardExpiration') || 'MM/AA'}
                     </label>
                     <input
                       type="text"
@@ -624,7 +638,7 @@ const CheckoutPage = () => {
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                         errors.expiracion ? "border-red-500" : "border-gray-300"
                       }`}
-                      placeholder="MM/AA"
+                      placeholder={t('checkout_cardExpirationPlaceholder') || 'MM/AA'}
                     />
                     {errors.expiracion && (
                       <span className="text-sm text-red-600 error-message">{errors.expiracion}</span>
@@ -632,7 +646,7 @@ const CheckoutPage = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      CVC
+                      {t('checkout_cardCVC') || 'CVC'}
                     </label>
                     <input
                       type="text"
@@ -643,7 +657,7 @@ const CheckoutPage = () => {
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                         errors.cvc ? "border-red-500" : "border-gray-300"
                       }`}
-                      placeholder="CVC"
+                      placeholder={t('checkout_cardCVCPlaceholder') || 'CVC'}
                     />
                     {errors.cvc && (
                       <span className="text-sm text-red-600 error-message">{errors.cvc}</span>
@@ -651,17 +665,15 @@ const CheckoutPage = () => {
                   </div>
                 </div>
 
-                {/* 🔒 Mensaje de seguridad con LOGOS DE OCTANO */}
                 <div className="flex flex-col gap-3 pt-2 border-t border-gray-200/30">
                   <div className="flex items-center gap-2 text-xs">
                     <Lock className="w-3 h-3" />
-                    <span>Seguro: Tus datos están encriptados</span>
+                    <span>{t('checkout_secure') || 'Seguro: Tus datos están encriptados'}</span>
                   </div>
                   
-                  {/* Logos de Octano */}
                   <div className="flex items-center justify-end gap-2">
                     <span className="text-[10px] text-gray-400 uppercase tracking-wider">
-                      Pagos seguros con
+                      {t('checkout_secureWith') || 'Pagos seguros con'}
                     </span>
                     <div className="flex items-center gap-1.5">
                       <Image
@@ -682,9 +694,9 @@ const CheckoutPage = () => {
             <div className="rounded-xl shadow-sm p-6 card-checkout">
               <div className="space-y-3">
                 <p className="text-sm">
-                  Tus datos personales se utilizarán para procesar tu pedido, mejorar tu experiencia en esta web y otros propósitos descritos en nuestra{" "}
+                  {t('checkout_termsText') || 'Tus datos personales se utilizarán para procesar tu pedido, mejorar tu experiencia en esta web y otros propósitos descritos en nuestra'}{" "}
                   <a href="/politica-privacidad" className="text-blue-600 hover:underline">
-                    política de privacidad
+                    {t('checkout_termsLink') || 'política de privacidad'}
                   </a>
                   .
                 </p>
@@ -698,7 +710,7 @@ const CheckoutPage = () => {
                     className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
                   <label className="text-sm">
-                    He leído y acepto las condiciones términos y condiciones *
+                    {t('checkout_termsAccept') || 'He leído y acepto las condiciones términos y condiciones *'}
                   </label>
                 </div>
                 {errors.aceptaTerminos && (
@@ -721,12 +733,12 @@ const CheckoutPage = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Procesando...
+                  {t('checkout_processing') || 'Procesando...'}
                 </span>
               ) : success ? (
-                "¡Pedido realizado!"
+                t('checkout_success') || '¡Pedido realizado!'
               ) : (
-                "Agregar pedido"
+                t('checkout_submit') || 'Agregar pedido'
               )}
             </button>
 
@@ -742,5 +754,4 @@ const CheckoutPage = () => {
   );
 };
 
-// ✅ EXPORTACIÓN CORRECTA - El componente debe ser el export default
 export default CheckoutPage;

@@ -1,64 +1,64 @@
+// src/services/translationService.ts
 'use server';
 
-import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-let cache: any = null;
-let cacheTimestamp = 0;
-const CACHE_TTL = 60 * 1000; // 1 minuto
+function loadJsonFile(lang: string, namespace: string): Record<string, string> {
+  try {
+    const filePath = path.join(process.cwd(), 'src', 'i18n', 'locales', lang, `${namespace}.json`);
+    console.log(`📂 Leyendo archivo: ${filePath}`);
+    
+    // Verificar si el archivo existe
+    if (!fs.existsSync(filePath)) {
+      console.error(`❌ El archivo NO existe: ${filePath}`);
+      return {};
+    }
+    
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(fileContent);
+    console.log(`✅ ${lang}/${namespace}.json cargado: ${Object.keys(data).length} claves`);
+    
+    // Mostrar las primeras 5 claves para verificar
+    const keys = Object.keys(data).slice(0, 5);
+    console.log(`📝 Claves de ejemplo: ${keys.join(', ')}`);
+    
+    return data;
+  } catch (error) {
+    console.error(`❌ Error cargando ${lang}/${namespace}.json:`, error);
+    return {};
+  }
+}
 
 export async function loadTranslations() {
   try {
-    // Verificar caché
-    const now = Date.now();
-    if (cache && (now - cacheTimestamp) < CACHE_TTL) {
-      console.log('📦 Usando caché de traducciones');
-      return cache;
-    }
+    console.log('📂 Cargando traducciones desde archivos locales...');
 
-    console.log('🔍 Cargando traducciones desde Supabase...');
-
-    const { data, error } = await supabase
-      .from('translations')
-      .select('namespace, key, es, en');
-
-    if (error) {
-      console.error('❌ Error en la consulta:', error);
-      throw error;
-    }
-
-    if (!data || data.length === 0) {
-      console.warn('⚠️ No se encontraron traducciones en la base de datos');
-      return { es: {}, en: {} };
-    }
-
-    console.log(`✅ ${data.length} traducciones cargadas`);
-
-    // Convertir a formato i18next
     const resources: any = { es: {}, en: {} };
+    const namespaces = ['common'];
+    const languages = ['es', 'en'];
 
-    data.forEach((item: any) => {
-      const ns = item.namespace || 'common';
-      
-      if (!resources.es[ns]) resources.es[ns] = {};
-      if (!resources.en[ns]) resources.en[ns] = {};
-      
-      resources.es[ns][item.key] = item.es;
-      resources.en[ns][item.key] = item.en;
-    });
+    for (const lang of languages) {
+      for (const ns of namespaces) {
+        const data = loadJsonFile(lang, ns);
+        if (Object.keys(data).length > 0) {
+          if (!resources[lang][ns]) resources[lang][ns] = {};
+          Object.assign(resources[lang][ns], data);
+        }
+      }
+    }
 
-    // Guardar en caché
-    cache = resources;
-    cacheTimestamp = now;
-
+    console.log(`📦 Traducciones cargadas: ES: ${Object.keys(resources.es.common).length}, EN: ${Object.keys(resources.en.common).length}`);
+    
+    // Verificar que las claves de términos están cargadas
+    if (resources.es.common) {
+      const hasTerminos = Object.keys(resources.es.common).some(k => k.startsWith('terminos_'));
+      console.log(`📋 ¿Claves de términos en ES? ${hasTerminos ? '✅ Sí' : '❌ No'}`);
+    }
+    
     return resources;
   } catch (error) {
-    console.error('❌ Error loading translations:', error);
-    // Devolver recursos vacíos para no romper la app
-    return { es: {}, en: {} };
+    console.error('❌ Error en loadTranslations:', error);
+    return { es: { common: {} }, en: { common: {} } };
   }
 }

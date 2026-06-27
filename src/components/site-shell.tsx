@@ -1,20 +1,17 @@
-"use client";
+'use client';
 
-import { ContactModalProvider } from "@/components/contact-modal";
-import { CartProvider } from "@/components/cart-context";
+import { ReactNode } from "react";
 import { CartSheet } from "@/components/cart-sheet";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+import Header from "@/components/header";  // ✅ Importación por defecto
+import Footer from "@/components/footer";  // ✅ Importación por defecto
 
-export function SiteShell({ children }: { children: React.ReactNode }) {
+export function SiteShell({ children }: { children: ReactNode }) {
   return (
-    <ContactModalProvider>
-      <CartProvider>
-        <Header />
-        <main>{children}</main>
-        <Footer />
-        <CartSheet />
-      </CartProvider>
-    </ContactModalProvider>
+    <>
+      <Header />
+      <CartSheet />
+      <main>{children}</main>
+      <Footer />
+    </>
   );
 }
