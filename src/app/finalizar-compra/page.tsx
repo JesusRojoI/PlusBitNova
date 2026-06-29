@@ -13,7 +13,7 @@ import { CreditCard, Lock, CheckCircle, ChevronDown, ChevronUp } from "lucide-re
 import Image from "next/image";
 import { useTranslation } from "@/hooks/useTranslation";
 import { loadTranslations } from "@/services/translationService";
-
+import { sendPaymentConfirmationAction, notifyAdminAction } from '@/app/actions/email-actions';
 const CheckoutPage = () => {
   const router = useRouter();
   const { items, subtotal, iva, total, clear } = useCart();
@@ -232,6 +232,35 @@ const CheckoutPage = () => {
       if (result.status === "approved") {
         setSuccess(true);
         clear();
+        
+        // ✅ ENVIAR CORREO DE CONFIRMACIÓN AL CLIENTE
+        try {
+          await sendPaymentConfirmationAction({
+            to: formData.email,
+            name: `${formData.nombre} ${formData.apellidos}`,
+            orderId: result.orderId,
+            amount: total,
+            plan: 'Cotización personalizada'
+          });
+          console.log('✅ Correo de confirmación enviado al cliente');
+        } catch (emailError) {
+          console.error('❌ Error enviando correo al cliente:', emailError);
+        }
+        
+        // ✅ NOTIFICAR AL ADMINISTRADOR
+        try {
+          await notifyAdminAction({
+            orderId: result.orderId,
+            customerName: `${formData.nombre} ${formData.apellidos}`,
+            customerEmail: formData.email,
+            amount: total,
+            plan: 'Cotización personalizada'
+          });
+          console.log('✅ Notificación al admin enviada');
+        } catch (adminError) {
+          console.error('❌ Error notificando admin:', adminError);
+        }
+        
         setTimeout(() => {
           router.push(`/pedido-exitoso?orderId=${result.orderId}`);
         }, 2000);

@@ -62,3 +62,30 @@ export async function loadTranslations() {
     return { es: { common: {} }, en: { common: {} } };
   }
 }
+
+// ✅ FUNCIÓN AGREGADA PARA COMPATIBILIDAD CON Translate.tsx
+export async function getTranslation(text: string, targetLang: string): Promise<string> {
+  // Si es español o no hay texto, devolver el original
+  if (targetLang === 'es' || !text) {
+    return text;
+  }
+
+  try {
+    const resources = await loadTranslations();
+    
+    // Buscar en el namespace 'common' del idioma destino
+    if (resources && resources[targetLang] && resources[targetLang].common) {
+      const result = resources[targetLang].common[text];
+      if (result) {
+        console.log(`✅ getTranslation: "${text}" → "${result}"`);
+        return result;
+      }
+    }
+    
+    console.log(`⚠️ getTranslation: No se encontró traducción para "${text}"`);
+    return text;
+  } catch (error) {
+    console.error('❌ Error en getTranslation:', error);
+    return text;
+  }
+}

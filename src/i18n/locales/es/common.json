@@ -404,7 +404,16 @@
   "servicio_support_service9_desc": "Con bases de datos leves, o sistema crítico que requiere optimización de rendimiento (configuraciones, cachés, ajustes)",
   "servicio_support_service10_title": "Optimización servidor grande / ambientes empresariales con muchas aplicaciones",
   "servicio_support_service10_desc": "Mucho uso, alta demanda de rendimiento, optimización profunda de base de datos, red, almacenamiento",
-  "servicio_support_price": "MXN + IVA"
+  "servicio_support_price": "MXN + IVA",
+  "servicio_add_to_cart": "Añadir al carrito",
+  "servicio_select_service": "Seleccionar Servicio",
+  "servicio_features": "Características:",
+  "servicio_service": "Servicio",
+  "servicio_our_services": "Nuestros Servicios",
+  "servicio_hours": "Hora(s)",
+  "servicio_decrease": "Disminuir",
+  "servicio_increase": "Aumentar"
+  
   
   
 }

@@ -1,7 +1,7 @@
 // src/app/actions/send-cotizacion.ts
 'use server';
 
-import { sendCotizacionEmail } from '@/services/emailService';
+import { sendCotizacionEmail } from '@/services/cotizacionService';
 
 export async function sendCotizacionAction(formData: FormData) {
   try {

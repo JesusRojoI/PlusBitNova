@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, Check, ShoppingCart, Minus, Plus } from "lucide-react";
 import { SectionLabel } from "@/components/section-label";
 import { DecorativeRings } from "@/components/decorative-rings";
 import { CotizaCTA } from "@/components/service/cotiza-cta";
 import { useCart, parsePrice } from "@/components/cart-context";
+import { loadTranslations } from '@/services/translationService';
 
 export interface ServiceItem {
   title: string;
@@ -82,8 +83,34 @@ function useAddToCart() {
   };
 }
 
-function PriceCard({ item }: { item: ServiceItem }) {
+// 📝 Textos en español (fallback)
+const TEXTS_ES = {
+  addToCart: 'Añadir al carrito',
+  selectService: 'Seleccionar Servicio',
+  features: 'Características:',
+  service: 'Servicio',
+  ourServices: 'Nuestros Servicios',
+  hours: 'Hora(s)',
+  decrease: 'Disminuir',
+  increase: 'Aumentar'
+};
+
+// 📝 Textos en inglés (fallback)
+const TEXTS_EN = {
+  addToCart: 'Add to cart',
+  selectService: 'Select Service',
+  features: 'Features:',
+  service: 'Service',
+  ourServices: 'Our Services',
+  hours: 'Hour(s)',
+  decrease: 'Decrease',
+  increase: 'Increase'
+};
+
+function PriceCard({ item, language }: { item: ServiceItem; language: 'es' | 'en' }) {
   const addToCart = useAddToCart();
+  const texts = language === 'es' ? TEXTS_ES : TEXTS_EN;
+
   return (
     <div className={CARD}>
       <h3 className="font-display text-2xl font-extrabold leading-tight text-white">
@@ -97,15 +124,17 @@ function PriceCard({ item }: { item: ServiceItem }) {
       </div>
       <div className="mt-6">
         <CoralButton onClick={() => addToCart(item)}>
-          Seleccionar Servicio
+          {texts.selectService}
         </CoralButton>
       </div>
     </div>
   );
 }
 
-function FeaturesCard({ item }: { item: ServiceItem }) {
+function FeaturesCard({ item, language }: { item: ServiceItem; language: 'es' | 'en' }) {
   const addToCart = useAddToCart();
+  const texts = language === 'es' ? TEXTS_ES : TEXTS_EN;
+
   return (
     <div className={CARD}>
       <h3 className="font-display text-2xl font-extrabold leading-tight text-white">
@@ -116,11 +145,11 @@ function FeaturesCard({ item }: { item: ServiceItem }) {
       </div>
       <div className="mt-5">
         <CoralButton onClick={() => addToCart(item)}>
-          Seleccionar Servicio
+          {texts.selectService}
         </CoralButton>
       </div>
       <h4 className="mt-7 font-display text-3xl font-extrabold text-white sm:text-4xl">
-        Características:
+        {texts.features}
       </h4>
       <ul className="mt-4 space-y-3">
         {item.features?.map((f, i) => (
@@ -137,9 +166,11 @@ function FeaturesCard({ item }: { item: ServiceItem }) {
   );
 }
 
-function HourlyCard({ item }: { item: ServiceItem }) {
+function HourlyCard({ item, language }: { item: ServiceItem; language: 'es' | 'en' }) {
   const [qty, setQty] = useState(1);
   const addToCart = useAddToCart();
+  const texts = language === 'es' ? TEXTS_ES : TEXTS_EN;
+
   return (
     <div className={CARD}>
       <h3 className="font-display text-xl font-extrabold leading-snug text-white">
@@ -153,7 +184,7 @@ function HourlyCard({ item }: { item: ServiceItem }) {
           <div className="flex items-center overflow-hidden rounded-lg border border-white/20">
             <button
               type="button"
-              aria-label="Disminuir"
+              aria-label={texts.decrease}
               onClick={() => setQty((q) => Math.max(1, q - 1))}
               className="px-2.5 py-2 text-white transition-colors hover:bg-white/10"
             >
@@ -164,21 +195,21 @@ function HourlyCard({ item }: { item: ServiceItem }) {
             </span>
             <button
               type="button"
-              aria-label="Aumentar"
+              aria-label={texts.increase}
               onClick={() => setQty((q) => q + 1)}
               className="px-2.5 py-2 text-white transition-colors hover:bg-white/10"
             >
               <Plus className="h-3.5 w-3.5" />
             </button>
           </div>
-          <span className="text-sm text-gray-300">Hora(s)</span>
+          <span className="text-sm text-gray-300">{texts.hours}</span>
         </div>
         <CoralButton
           onClick={() => addToCart(item, qty)}
           trailingArrow={false}
           leadingIcon={<ShoppingCart className="h-3.5 w-3.5" />}
         >
-          Añadir al carrito
+          {texts.addToCart}
         </CoralButton>
       </div>
     </div>
@@ -186,6 +217,37 @@ function HourlyCard({ item }: { item: ServiceItem }) {
 }
 
 export function ServicePage({ data }: { data: ServicePageData }) {
+  const [language, setLanguage] = useState<'es' | 'en'>('es');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const saved = localStorage.getItem('language') as 'es' | 'en';
+        if (saved === 'es' || saved === 'en') {
+          setLanguage(saved);
+        }
+        // Cargar traducciones para asegurar que el sistema esté listo
+        await loadTranslations();
+      } catch (error) {
+        console.error('❌ Error cargando traducciones:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const texts = language === 'es' ? TEXTS_ES : TEXTS_EN;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white/50">Cargando...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-900">
       {/* HERO */}
@@ -216,7 +278,7 @@ export function ServicePage({ data }: { data: ServicePageData }) {
       {/* SERVICIO INTRO */}
       <section className="bg-gray-900 py-16 sm:py-20">
         <div className="mx-auto max-w-4xl px-5 text-center sm:px-8">
-          <SectionLabel className="justify-center text-white/80">Servicio</SectionLabel>
+          <SectionLabel className="justify-center text-white/80">{texts.service}</SectionLabel>
           <h2 className="mx-auto mt-6 max-w-3xl font-display text-3xl font-extrabold leading-[1.12] text-white sm:text-5xl">
             {data.servicioHeading}
           </h2>
@@ -242,15 +304,15 @@ export function ServicePage({ data }: { data: ServicePageData }) {
       <section className="bg-gray-900 pb-20 sm:pb-24">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <h2 className="mb-12 text-center font-display text-4xl font-extrabold text-white sm:text-5xl">
-            Nuestros Servicios
+            {texts.ourServices}
           </h2>
           <div className="columns-1 gap-6 sm:columns-2">
             {data.services.map((item, i) => {
               if (data.variant === "features")
-                return <FeaturesCard key={i} item={item} />;
+                return <FeaturesCard key={i} item={item} language={language} />;
               if (data.variant === "hourly")
-                return <HourlyCard key={i} item={item} />;
-              return <PriceCard key={i} item={item} />;
+                return <HourlyCard key={i} item={item} language={language} />;
+              return <PriceCard key={i} item={item} language={language} />;
             })}
           </div>
         </div>

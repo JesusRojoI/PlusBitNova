@@ -1,9 +1,11 @@
-// src/services/emailService.ts
+// src/app/actions/email-actions.ts
 'use server';
 
 import { Resend } from 'resend';
 
-// ✅ Verificar que la API Key existe antes de inicializar
+// ============================================
+// CONFIGURACIÓN DE RESEND
+// ============================================
 let resendInstance: any = null;
 
 if (typeof window === 'undefined') {
@@ -114,49 +116,6 @@ const templates = {
     `
   }),
 
-  welcome: (data: any) => ({
-    subject: `👋 ¡Bienvenido a PlusBitNova, ${data.name}!`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Bienvenido</title>
-        <style>
-          body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8fafc; }
-          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-          .header { background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: white; padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0; }
-          .content { padding: 30px; }
-          .features { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-          .feature { background: #f1f5f9; padding: 15px; border-radius: 8px; text-align: center; }
-          .feature span { display: block; font-size: 28px; margin-bottom: 5px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header"><h1 style="margin: 0;">🛡️ ¡Bienvenido!</h1></div>
-          <div class="content">
-            <h2>Hola ${data.name}, 👋</h2>
-            <p>Gracias por unirte a <strong>PlusBitNova</strong>.</p>
-            <div class="features">
-              <div class="feature"><span>🛡️</span> Protección 24/7</div>
-              <div class="feature"><span>⚡</span> Respuesta rápida</div>
-              <div class="feature"><span>🔒</span> Datos seguros</div>
-              <div class="feature"><span>🤝</span> Soporte experto</div>
-            </div>
-            <div style="text-align: center; margin: 20px 0;">
-              <a href="https://plusbitnova.com/dashboard" style="display: inline-block; background: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px;">Ir al Dashboard</a>
-            </div>
-            <p style="color: #475569; font-size: 14px;">
-              ¿Tienes preguntas? <a href="mailto:gestion@plusbitnova.com" style="color: #7c3aed;">gestion@plusbitnova.com</a>
-            </p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-  }),
-
   cotizacionCliente: (data: any) => ({
     subject: `📋 Solicitud de cotización - PlusBitNova`,
     html: `
@@ -235,7 +194,7 @@ const templates = {
 // ============================================
 // FUNCIÓN PRINCIPAL PARA ENVIAR CORREOS
 // ============================================
-export async function sendEmail({ to, template, data }: {
+async function sendEmail({ to, template, data }: {
   to: string;
   template: keyof typeof templates;
   data: Record<string, any>;
@@ -277,61 +236,62 @@ export async function sendEmail({ to, template, data }: {
 }
 
 // ============================================
-// ✅ FUNCIONES EXPORTADAS (SOLO FUNCIONES ASÍNCRONAS)
+// ✅ FUNCIONES EXPORTADAS
 // ============================================
 
-export async function sendPaymentConfirmation(data: {
+export async function sendPaymentConfirmationAction(data: {
   to: string;
   name: string;
   orderId: string;
   amount: number;
   plan: string;
 }) {
-  return sendEmail({
-    to: data.to,
-    template: 'paymentConfirmation',
-    data: {
-      name: data.name,
-      orderId: data.orderId,
-      amount: data.amount,
-      plan: data.plan
-    }
-  });
+  try {
+    const result = await sendEmail({
+      to: data.to,
+      template: 'paymentConfirmation',
+      data: {
+        name: data.name,
+        orderId: data.orderId,
+        amount: data.amount,
+        plan: data.plan
+      }
+    });
+    return result;
+  } catch (error) {
+    console.error('❌ Error en sendPaymentConfirmationAction:', error);
+    return { success: false, error: String(error) };
+  }
 }
 
-export async function notifyAdmin(data: {
+export async function notifyAdminAction(data: {
   orderId: string;
   customerName: string;
   customerEmail: string;
   amount: number;
   plan: string;
 }) {
-  const adminEmail = process.env.ADMIN_EMAIL || 'gestion@plusbitnova.com';
-  return sendEmail({
-    to: adminEmail,
-    template: 'adminNotification',
-    data: {
-      orderId: data.orderId,
-      customerName: data.customerName,
-      customerEmail: data.customerEmail,
-      amount: data.amount,
-      plan: data.plan
-    }
-  });
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || 'gestion@plusbitnova.com';
+    const result = await sendEmail({
+      to: adminEmail,
+      template: 'adminNotification',
+      data: {
+        orderId: data.orderId,
+        customerName: data.customerName,
+        customerEmail: data.customerEmail,
+        amount: data.amount,
+        plan: data.plan
+      }
+    });
+    return result;
+  } catch (error) {
+    console.error('❌ Error en notifyAdminAction:', error);
+    return { success: false, error: String(error) };
+  }
 }
 
-export async function sendWelcomeEmail(data: {
-  to: string;
-  name: string;
-}) {
-  return sendEmail({
-    to: data.to,
-    template: 'welcome',
-    data: { name: data.name }
-  });
-}
-
-export async function sendCotizacionEmail(data: {
+export async function sendCotizacionEmailAction(data: {
   clienteEmail: string;
   clienteNombre: string;
   clienteTelefono: string;
@@ -339,6 +299,7 @@ export async function sendCotizacionEmail(data: {
   servicio: string;
 }) {
   try {
+    // 1. Enviar al cliente
     await sendEmail({
       to: data.clienteEmail,
       template: 'cotizacionCliente',
@@ -349,6 +310,7 @@ export async function sendCotizacionEmail(data: {
       }
     });
 
+    // 2. Enviar al administrador
     const adminEmail = process.env.ADMIN_EMAIL || 'gestion@plusbitnova.com';
     await sendEmail({
       to: adminEmail,
@@ -364,7 +326,7 @@ export async function sendCotizacionEmail(data: {
 
     return { success: true };
   } catch (error) {
-    console.error('❌ Error enviando cotización:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Error desconocido' };
+    console.error('❌ Error en sendCotizacionEmailAction:', error);
+    return { success: false, error: String(error) };
   }
 }

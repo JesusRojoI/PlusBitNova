@@ -404,7 +404,15 @@
   "servicio_support_service9_desc": "With light databases, or critical system requiring performance optimization (configurations, caches, adjustments)",
   "servicio_support_service10_title": "Large server / enterprise environments with many applications optimization",
   "servicio_support_service10_desc": "High usage, high performance demand, deep optimization of database, network, storage",
-  "servicio_support_price": "MXN + VAT"
+  "servicio_support_price": "MXN + VAT",
+   "servicio_add_to_cart": "Add to cart",
+  "servicio_select_service": "Select Service",
+  "servicio_features": "Features:",
+  "servicio_service": "Service",
+  "servicio_our_services": "Our Services",
+  "servicio_hours": "Hour(s)",
+  "servicio_decrease": "Decrease",
+  "servicio_increase": "Increase"
   
   
   

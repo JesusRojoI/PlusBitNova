@@ -56,7 +56,7 @@ export function CartSheet() {
   // Función para "Seguir explorando"
   const handleExplore = () => {
     closeCart();
-    router.push("/servicios");
+    router.push("/seguridad-informatica");
   };
 
   // Alternar colores cada 2 segundos

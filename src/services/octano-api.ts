@@ -1,62 +1,73 @@
 // src/services/octano-api.ts
-
-const OCTANO_API_URL = process.env.NEXT_PUBLIC_OCTANO_API_URL || "https://api.octano.com/v1";
-const CLIENT_ID = process.env.NEXT_PUBLIC_OCTANO_CLIENT_ID;
-const CLIENT_SECRET = process.env.NEXT_PUBLIC_OCTANO_CLIENT_SECRET;
+'use server';
 
 // ============================================
-// 1. AUTENTICACIÓN - Obtener token JWT
+// CONFIGURACIÓN - Usando las variables correctas
+// ============================================
+const OCTANO_BASE_URL = process.env.OCTANO_BASE_URL || 'https://pagos.octanopayments.com/api/v1';
+const OCTANO_EMAIL = process.env.OCTANO_EMAIL;
+const OCTANO_PASSWORD = process.env.OCTANO_PASSWORD;
+
+// Estado de autenticación
+let authToken: string | null = null;
+let tokenExpiry: number | null = null;
+
+// ============================================
+// 1. AUTENTICACIÓN
 // ============================================
 export async function authenticateOctano(): Promise<string> {
+  // Verificar si el token aún es válido (15 minutos)
+  if (authToken && tokenExpiry && Date.now() < tokenExpiry) {
+    return authToken; // ✅ authToken es string aquí porque la condición verifica que no sea null
+  }
+
   try {
-    if (!CLIENT_ID || !CLIENT_SECRET) {
-      console.warn("⚠️ Credenciales de Octano no configuradas. Usando modo simulación.");
-      return "simulated-token-12345";
+    console.log('🔐 Autenticando con Octano...');
+    
+    // Verificar credenciales
+    if (!OCTANO_EMAIL || !OCTANO_PASSWORD) {
+      console.warn('⚠️ Credenciales de Octano no configuradas. Usando modo simulación.');
+      return 'simulated-token-12345';
     }
 
-    const response = await fetch(`${OCTANO_API_URL}/auth/token`, {
-      method: "POST",
+    const response = await fetch(`${OCTANO_BASE_URL}/signin`, {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        grant_type: "client_credentials",
+        email: OCTANO_EMAIL,
+        password: OCTANO_PASSWORD,
       }),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || "Error de autenticación con Octano");
+      throw new Error(error.message || 'Error de autenticación con Octano');
     }
 
     const data = await response.json();
-    const token = data.access_token;
+    
+    if (!data.authToken) {
+      throw new Error('No se recibió token de autenticación');
+    }
 
-    localStorage.setItem("octano_token", token);
-    localStorage.setItem("octano_token_expires", String(Date.now() + data.expires_in * 1000));
-
-    return token;
+    authToken = data.authToken;
+    tokenExpiry = Date.now() + 15 * 60 * 1000; // 15 minutos
+    console.log('✅ Autenticación exitosa');
+    return authToken as string;
   } catch (error) {
-    console.error("Error autenticando con Octano:", error);
-    if (process.env.NODE_ENV === "development") {
-      console.warn("⚠️ Usando token simulado para desarrollo");
-      return "simulated-token-12345";
+    console.error('❌ Error autenticando con Octano:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Usando token simulado para desarrollo');
+      return 'simulated-token-12345';
     }
     throw error;
   }
 }
 
 export async function getOctanoToken(): Promise<string> {
-  const token = localStorage.getItem("octano_token");
-  const expires = localStorage.getItem("octano_token_expires");
-
-  if (!token || !expires || Date.now() > Number(expires)) {
-    return await authenticateOctano();
-  }
-
-  return token;
+  return await authenticateOctano();
 }
 
 // ============================================
@@ -79,51 +90,82 @@ export async function tokenizeCard(cardData: TokenizeCardRequest): Promise<Token
   try {
     const token = await getOctanoToken();
 
-    if (process.env.NODE_ENV === "development" && token === "simulated-token-12345") {
-      console.log("🔐 Simulando tokenización de tarjeta...");
+    if (token === 'simulated-token-12345') {
+      console.log('🔐 Simulando tokenización de tarjeta...');
       return {
-        token: `tok_sim_${Math.random().toString(36).substr(2, 9)}`,
+        token: `tok_sim_${Math.random().toString(36).substring(2, 11)}`,
         last4: cardData.cardNumber.slice(-4),
         cardId: `card_sim_${Date.now()}`,
       };
     }
 
-    const [month, year] = cardData.cardExpiration.split("/");
+    const [month, year] = cardData.cardExpiration.split('/');
 
-    const response = await fetch(`${OCTANO_API_URL}/payment/tokenize`, {
-      method: "POST",
+    const response = await fetch(`${OCTANO_BASE_URL}/card/tokenizer`, {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
-        card_number: cardData.cardNumber.replace(/\s/g, ""),
-        card_expiration_month: month,
-        card_expiration_year: `20${year}`,
-        card_cvc: cardData.cardCVC,
-        card_holder: cardData.cardHolder,
+        cardData: {
+          cardNumber: cardData.cardNumber.replace(/\s/g, ''),
+          cardholderName: cardData.cardHolder,
+          expirationYear: `20${year}`,
+          expirationMonth: month,
+        },
       }),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || "Error tokenizando tarjeta");
+      throw new Error(error.message || 'Error tokenizando tarjeta');
     }
 
     const data = await response.json();
     return {
-      token: data.token,
-      last4: data.last4,
-      cardId: data.card_id,
+      token: data.cardNumberToken || data.token,
+      last4: cardData.cardNumber.slice(-4),
+      cardId: data.cardId || `card_${Date.now()}`,
     };
   } catch (error) {
-    console.error("Error tokenizando tarjeta:", error);
+    console.error('❌ Error tokenizando tarjeta:', error);
     throw error;
   }
 }
 
 // ============================================
-// 3. CREAR PEDIDO / PROCESAR PAGO
+// 3. VALIDAR USUARIO
+// ============================================
+interface ValidateUserRequest {
+  email: string;
+  nombre: string;
+  apellidos: string;
+  telefono?: string;
+}
+
+export async function validateUser(userData: ValidateUserRequest): Promise<boolean> {
+  try {
+    // Validación básica local
+    if (!userData.email || !userData.nombre || !userData.apellidos) {
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userData.email)) {
+      return false;
+    }
+
+    console.log('✅ Usuario validado:', userData.email);
+    return true;
+  } catch (error) {
+    console.error('❌ Error validando usuario:', error);
+    return false;
+  }
+}
+
+// ============================================
+// 4. CREAR PEDIDO / PROCESAR PAGO
 // ============================================
 interface OrderRequest {
   user: {
@@ -160,7 +202,7 @@ interface OrderRequest {
 
 interface OrderResponse {
   orderId: string;
-  status: "pending" | "approved" | "rejected";
+  status: 'pending' | 'approved' | 'rejected';
   transactionId: string;
   message?: string;
 }
@@ -169,114 +211,80 @@ export async function createOrder(orderData: OrderRequest): Promise<OrderRespons
   try {
     const token = await getOctanoToken();
 
-    if (process.env.NODE_ENV === "development" && token === "simulated-token-12345") {
-      console.log("📦 Simulando creación de pedido...", orderData);
+    // MODO SIMULACIÓN
+    if (token === 'simulated-token-12345') {
+      console.log('📦 Simulando creación de pedido...');
+      // Simular un pequeño retraso
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Simular que el pago es aprobado (puedes cambiar a 'rejected' para probar)
+      const isApproved = true;
+      
       return {
         orderId: `ORD-SIM-${Date.now()}`,
-        status: "approved",
+        status: isApproved ? 'approved' : 'rejected',
         transactionId: `TXN-SIM-${Date.now()}`,
-        message: "Pedido simulado exitosamente",
+        message: isApproved ? 'Pago simulado exitosamente' : 'Pago simulado rechazado',
       };
     }
 
-    const response = await fetch(`${OCTANO_API_URL}/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+    // MODO REAL
+    const total = orderData.payment.amount;
+
+    const salePayload = {
+      amount: Number(total),
+      currency: '484',
+      reference: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      customerInformation: {
+        firstName: orderData.user.nombre?.trim() || 'N/A',
+        lastName: orderData.user.apellidos?.trim() || 'N/A',
+        email: orderData.user.email,
+        phone1: orderData.user.telefono || '',
+        address1: `${orderData.shipping.calle} ${orderData.shipping.numero}`,
+        address2: orderData.shipping.apartamento || '',
+        city: orderData.shipping.poblacion,
+        state: orderData.shipping.provincia,
+        postalCode: orderData.shipping.codigoPostal,
+        country: orderData.shipping.pais || 'MX',
+        ip: '127.0.0.1',
       },
-      body: JSON.stringify({
-        customer: {
-          name: `${orderData.user.nombre} ${orderData.user.apellidos}`,
-          email: orderData.user.email,
-          phone: orderData.user.telefono,
-        },
-        shipping_address: {
-          street: orderData.shipping.calle,
-          number: orderData.shipping.numero,
-          apartment: orderData.shipping.apartamento || "",
-          city: orderData.shipping.poblacion,
-          state: orderData.shipping.provincia,
-          zip_code: orderData.shipping.codigoPostal,
-          country: orderData.shipping.pais,
-        },
-        items: orderData.products.map((p) => ({
-          product_id: p.id,
-          name: p.title,
-          quantity: p.quantity,
-          unit_price: p.price,
-          total: p.price * p.quantity,
-        })),
-        payment: {
-          card_token: orderData.payment.cardToken,
-          amount: orderData.payment.amount,
-          subtotal: orderData.payment.subtotal,
-          tax: orderData.payment.iva,
-        },
-        notes: orderData.notes || "",
-        coupon: orderData.coupon || "",
-      }),
+      cardData: {
+        cardNumberToken: orderData.payment.cardToken,
+        cvv: '000',
+      },
+      metadata: {
+        productos: JSON.stringify(orderData.products),
+        notas: orderData.notes || '',
+        cupon: orderData.coupon || '',
+        subtotal: orderData.payment.subtotal,
+        iva: orderData.payment.iva,
+      },
+    };
+
+    const response = await fetch(`${OCTANO_BASE_URL}/sale`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(salePayload),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || "Error creando pedido");
+      throw new Error(error.message || 'Error procesando pago');
     }
 
     const data = await response.json();
+
     return {
-      orderId: data.order_id,
-      status: data.status,
-      transactionId: data.transaction_id,
-      message: data.message,
+      orderId: salePayload.reference,
+      status: data.status === 'APPROVED' ? 'approved' : 'rejected',
+      transactionId: data.transactionId || data.id || `TXN-${Date.now()}`,
+      message: data.message || (data.status === 'APPROVED' ? 'Pago aprobado' : 'Pago rechazado'),
     };
   } catch (error) {
-    console.error("Error creando pedido:", error);
+    console.error('❌ Error creando pedido:', error);
     throw error;
-  }
-}
-
-// ============================================
-// 4. VALIDAR INFORMACIÓN DEL USUARIO
-// ============================================
-interface ValidateUserRequest {
-  email: string;
-  nombre: string;
-  apellidos: string;
-  telefono?: string;
-}
-
-export async function validateUser(userData: ValidateUserRequest): Promise<boolean> {
-  try {
-    const token = await getOctanoToken();
-
-    if (process.env.NODE_ENV === "development" && token === "simulated-token-12345") {
-      console.log("✅ Simulando validación de usuario:", userData.email);
-      return true;
-    }
-
-    const response = await fetch(`${OCTANO_API_URL}/customer/validate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        email: userData.email,
-        name: `${userData.nombre} ${userData.apellidos}`,
-        phone: userData.telefono || "",
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Error validando usuario");
-    }
-
-    const data = await response.json();
-    return data.valid === true;
-  } catch (error) {
-    console.error("Error validando usuario:", error);
-    return true;
   }
 }
