@@ -20,180 +20,252 @@ if (typeof window === 'undefined') {
 }
 
 // ============================================
-// PLANTILLAS DE CORREO
+// PLANTILLAS DE CORREO (BILINGÜES)
 // ============================================
 const templates = {
-  paymentConfirmation: (data: any) => ({
-    subject: `✅ ¡Pago confirmado! - PlusBitNova (Orden: ${data.orderId})`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Confirmación de Pago</title>
-        <style>
-          body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8fafc; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0; }
-          .header h1 { margin: 0; font-size: 24px; }
-          .content { background: white; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-          .details { background: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
-          .details-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
-          .details-item:last-child { border-bottom: none; }
-          .button { display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-          .footer { text-align: center; padding: 20px; color: #64748b; font-size: 13px; border-top: 1px solid #e2e8f0; margin-top: 20px; }
-          .badge { display: inline-block; background: #22c55e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>🛡️ PlusBitNova</h1>
-            <p>Seguridad Digital</p>
-          </div>
-          <div class="content">
-            <h2 style="margin-top: 0;">¡Gracias por tu compra, ${data.name}! 🎉</h2>
-            <p>Tu pago ha sido <strong>confirmado exitosamente</strong>.</p>
-            <div class="details">
-              <div class="details-item"><span>📋 Número de orden</span><strong>${data.orderId}</strong></div>
-              <div class="details-item"><span>💳 Monto pagado</span><strong>$${data.amount.toFixed(2)} MXN</strong></div>
-              <div class="details-item"><span>📦 Plan contratado</span><strong>${data.plan}</strong></div>
-              <div class="details-item"><span>📅 Fecha</span><strong>${new Date().toLocaleDateString('es-MX')}</strong></div>
-              <div class="details-item"><span>✅ Estado</span><strong><span class="badge">Pagado</span></strong></div>
+  // 👉 PLANTILLA BILINGÜE: Confirmación de pago al cliente
+  paymentConfirmation: (data: any) => {
+    const es = data.idioma === 'es' || !data.idioma;
+    
+    return {
+      subject: es 
+        ? `✅ ¡Pago confirmado! - PlusBitNova (Orden: ${data.orderId})`
+        : `✅ Payment Confirmed! - PlusBitNova (Order: ${data.orderId})`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${es ? 'Confirmación de Pago' : 'Payment Confirmation'}</title>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8fafc; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0; }
+            .header h1 { margin: 0; font-size: 24px; }
+            .content { background: white; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+            .details { background: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .details-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+            .details-item:last-child { border-bottom: none; }
+            .button { display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+            .footer { text-align: center; padding: 20px; color: #64748b; font-size: 13px; border-top: 1px solid #e2e8f0; margin-top: 20px; }
+            .badge { display: inline-block; background: #22c55e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🛡️ PlusBitNova</h1>
+              <p>${es ? 'Seguridad Digital' : 'Digital Security'}</p>
             </div>
-            <div style="text-align: center;">
-              <a href="https://plusbitnova.com/dashboard" class="button">🚀 Ir al Dashboard</a>
+            <div class="content">
+              <h2 style="margin-top: 0;">
+                ${es ? `¡Gracias por tu compra, ${data.name}! 🎉` : `Thank you for your purchase, ${data.name}! 🎉`}
+              </h2>
+              <p>
+                ${es 
+                  ? 'Tu pago ha sido <strong>confirmado exitosamente</strong>.' 
+                  : 'Your payment has been <strong>successfully confirmed</strong>.'}
+              </p>
+              <div class="details">
+                <div class="details-item">
+                  <span>${es ? '📋 Número de orden' : '📋 Order Number'}</span>
+                  <strong>${data.orderId}</strong>
+                </div>
+                <div class="details-item">
+                  <span>${es ? '💳 Monto pagado' : '💳 Amount Paid'}</span>
+                  <strong>$${data.amount.toFixed(2)} MXN</strong>
+                </div>
+                <div class="details-item">
+                  <span>${es ? '📦 Plan contratado' : '📦 Plan'}</span>
+                  <strong>${data.plan}</strong>
+                </div>
+                <div class="details-item">
+                  <span>${es ? '📅 Fecha' : '📅 Date'}</span>
+                  <strong>${new Date().toLocaleDateString(es ? 'es-MX' : 'en-US')}</strong>
+                </div>
+                <div class="details-item">
+                  <span>${es ? '✅ Estado' : '✅ Status'}</span>
+                  <strong><span class="badge">${es ? 'Pagado' : 'Paid'}</span></strong>
+                </div>
+              </div>
+              <div style="text-align: center;">
+                <a href="https://plusbitnova.com/dashboard" class="button">
+                  ${es ? '🚀 Ir al Dashboard' : '🚀 Go to Dashboard'}
+                </a>
+              </div>
+              <p style="color: #475569; font-size: 14px;">
+                ${es 
+                  ? 'Si tienes alguna pregunta, contáctanos en' 
+                  : 'If you have any questions, contact us at'}&nbsp;
+                <a href="mailto:gestion@plusbitnova.com" style="color: #3b82f6;">gestion@plusbitnova.com</a>
+              </p>
             </div>
-            <p style="color: #475569; font-size: 14px;">
-              Si tienes alguna pregunta, contáctanos en 
-              <a href="mailto:gestion@plusbitnova.com" style="color: #3b82f6;">gestion@plusbitnova.com</a>
-            </p>
+            <div class="footer">
+              <p>
+                ${es 
+                  ? `© ${new Date().getFullYear()} PlusBitNova - Todos los derechos reservados`
+                  : `© ${new Date().getFullYear()} PlusBitNova - All rights reserved`}
+              </p>
+            </div>
           </div>
-          <div class="footer">
-            <p>© ${new Date().getFullYear()} PlusBitNova - Todos los derechos reservados</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-  }),
+        </body>
+        </html>
+      `
+    };
+  },
 
-  adminNotification: (data: any) => ({
-    subject: `📋 Nuevo pedido - ${data.orderId}`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Nuevo Pedido</title>
-        <style>
-          body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8fafc; }
-          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-          .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 20px; text-align: center; border-radius: 12px 12px 0 0; }
-          .content { padding: 30px; }
-          .info-box { background: #f1f5f9; padding: 15px; border-radius: 8px; margin: 15px 0; }
-          .info-box-item { display: flex; justify-content: space-between; padding: 5px 0; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header"><h1 style="margin: 0;">📋 Nuevo Pedido</h1></div>
-          <div class="content">
-            <div class="info-box">
-              <div class="info-box-item"><span>🆔 Orden:</span><strong>${data.orderId}</strong></div>
-              <div class="info-box-item"><span>👤 Cliente:</span><strong>${data.customerName}</strong></div>
-              <div class="info-box-item"><span>📧 Email:</span><strong>${data.customerEmail}</strong></div>
-              <div class="info-box-item"><span>💰 Total:</span><strong>$${data.amount.toFixed(2)} MXN</strong></div>
-              <div class="info-box-item"><span>📦 Plan:</span><strong>${data.plan}</strong></div>
+  // 👉 PLANTILLA: Notificación al admin (con info del idioma del cliente)
+  adminNotification: (data: any) => {
+    const idiomaCliente = data.idioma === 'en' ? 'Inglés 🇺🇸' : 'Español 🇲🇽';
+    
+    return {
+      subject: `📋 Nuevo pedido - ${data.orderId}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Nuevo Pedido</title>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8fafc; }
+            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+            .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 20px; text-align: center; border-radius: 12px 12px 0 0; }
+            .content { padding: 30px; }
+            .info-box { background: #f1f5f9; padding: 15px; border-radius: 8px; margin: 15px 0; }
+            .info-box-item { display: flex; justify-content: space-between; padding: 5px 0; }
+            .badge-idioma { display: inline-block; background: #8b5cf6; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header"><h1 style="margin: 0;">📋 Nuevo Pedido</h1></div>
+            <div class="content">
+              <div class="info-box">
+                <div class="info-box-item"><span>🆔 Orden:</span><strong>${data.orderId}</strong></div>
+                <div class="info-box-item"><span>👤 Cliente:</span><strong>${data.customerName}</strong></div>
+                <div class="info-box-item"><span>📧 Email:</span><strong>${data.customerEmail}</strong></div>
+                <div class="info-box-item"><span>💰 Total:</span><strong>$${data.amount.toFixed(2)} MXN</strong></div>
+                <div class="info-box-item"><span>📦 Plan:</span><strong>${data.plan}</strong></div>
+                <div class="info-box-item">
+                  <span>🌐 Idioma cliente:</span>
+                  <strong><span class="badge-idioma">${idiomaCliente}</span></strong>
+                </div>
+              </div>
+              <p style="text-align: center; color: #64748b; font-size: 14px;">Revisa los detalles en el panel de administración.</p>
             </div>
-            <p style="text-align: center; color: #64748b; font-size: 14px;">Revisa los detalles en el panel de administración.</p>
           </div>
-        </div>
-      </body>
-      </html>
-    `
-  }),
+        </body>
+        </html>
+      `
+    };
+  },
 
-  welcome: (data: any) => ({
-    subject: `👋 ¡Bienvenido a PlusBitNova, ${data.name}!`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Bienvenido</title>
-        <style>
-          body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8fafc; }
-          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-          .header { background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: white; padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0; }
-          .content { padding: 30px; }
-          .features { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-          .feature { background: #f1f5f9; padding: 15px; border-radius: 8px; text-align: center; }
-          .feature span { display: block; font-size: 28px; margin-bottom: 5px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header"><h1 style="margin: 0;">🛡️ ¡Bienvenido!</h1></div>
-          <div class="content">
-            <h2>Hola ${data.name}, 👋</h2>
-            <p>Gracias por unirte a <strong>PlusBitNova</strong>.</p>
-            <div class="features">
-              <div class="feature"><span>🛡️</span> Protección 24/7</div>
-              <div class="feature"><span>⚡</span> Respuesta rápida</div>
-              <div class="feature"><span>🔒</span> Datos seguros</div>
-              <div class="feature"><span>🤝</span> Soporte experto</div>
+  // 👉 PLANTILLA BILINGÜE: Bienvenida
+  welcome: (data: any) => {
+    const es = data.idioma === 'es' || !data.idioma;
+    
+    return {
+      subject: es 
+        ? `👋 ¡Bienvenido a PlusBitNova, ${data.name}!`
+        : `👋 Welcome to PlusBitNova, ${data.name}!`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${es ? 'Bienvenido' : 'Welcome'}</title>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8fafc; }
+            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+            .header { background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: white; padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0; }
+            .content { padding: 30px; }
+            .features { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+            .feature { background: #f1f5f9; padding: 15px; border-radius: 8px; text-align: center; }
+            .feature span { display: block; font-size: 28px; margin-bottom: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0;">🛡️ ${es ? '¡Bienvenido!' : 'Welcome!'}</h1>
             </div>
-            <div style="text-align: center; margin: 20px 0;">
-              <a href="https://plusbitnova.com/dashboard" style="display: inline-block; background: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px;">Ir al Dashboard</a>
+            <div class="content">
+              <h2>${es ? `Hola ${data.name}, 👋` : `Hello ${data.name}, 👋`}</h2>
+              <p>
+                ${es 
+                  ? 'Gracias por unirte a <strong>PlusBitNova</strong>.' 
+                  : 'Thank you for joining <strong>PlusBitNova</strong>.'}
+              </p>
+              <div class="features">
+                <div class="feature"><span>🛡️</span> ${es ? 'Protección 24/7' : '24/7 Protection'}</div>
+                <div class="feature"><span>⚡</span> ${es ? 'Respuesta rápida' : 'Fast Response'}</div>
+                <div class="feature"><span>🔒</span> ${es ? 'Datos seguros' : 'Secure Data'}</div>
+                <div class="feature"><span>🤝</span> ${es ? 'Soporte experto' : 'Expert Support'}</div>
+              </div>
+              <div style="text-align: center; margin: 20px 0;">
+                <a href="https://plusbitnova.com/dashboard" style="display: inline-block; background: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px;">
+                  ${es ? 'Ir al Dashboard' : 'Go to Dashboard'}
+                </a>
+              </div>
+              <p style="color: #475569; font-size: 14px;">
+                ${es ? '¿Tienes preguntas?' : 'Have questions?'}&nbsp;
+                <a href="mailto:gestion@plusbitnova.com" style="color: #7c3aed;">gestion@plusbitnova.com</a>
+              </p>
             </div>
-            <p style="color: #475569; font-size: 14px;">
-              ¿Tienes preguntas? <a href="mailto:gestion@plusbitnova.com" style="color: #7c3aed;">gestion@plusbitnova.com</a>
-            </p>
           </div>
-        </div>
-      </body>
-      </html>
-    `
-  }),
+        </body>
+        </html>
+      `
+    };
+  },
 
-  cotizacionCliente: (data: any) => ({
-    subject: `📋 Solicitud de cotización - PlusBitNova`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Cotización recibida</title>
-        <style>
-          body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8fafc; }
-          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-          .header { background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; padding: 20px; text-align: center; border-radius: 12px 12px 0 0; }
-          .content { padding: 30px; }
-          .mensaje { background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 10px 0; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header"><h1 style="margin: 0;">¡Cotización recibida! 📋</h1></div>
-          <div class="content">
-            <p>Hola <strong>${data.nombre}</strong>,</p>
-            <p>Hemos recibido tu solicitud de cotización para el servicio:</p>
-            <p><strong>${data.servicio}</strong></p>
-            <p>Nuestro equipo de especialistas revisará tu información y te contactará en las próximas 24 horas.</p>
-            <p><strong>Mensaje que nos enviaste:</strong></p>
-            <div class="mensaje">${data.mensaje}</div>
-            <p>¡Gracias por confiar en PlusBitNova!</p>
-            <p style="color: #475569; font-size: 14px;">
-              <a href="mailto:gestion@plusbitnova.com" style="color: #2563eb;">gestion@plusbitnova.com</a>
-            </p>
+  // 👉 PLANTILLA BILINGÜE PARA EL CLIENTE (Cotización)
+  cotizacionCliente: (data: any) => {
+    const es = data.idioma === 'es' || !data.idioma;
+    
+    return {
+      subject: es 
+        ? `📋 Solicitud de cotización - PlusBitNova`
+        : `📋 Quote Request - PlusBitNova`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${es ? 'Cotización recibida' : 'Quote Received'}</title>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8fafc; }
+            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+            .header { background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; padding: 20px; text-align: center; border-radius: 12px 12px 0 0; }
+            .content { padding: 30px; }
+            .mensaje { background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 10px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0;">${es ? '¡Cotización recibida! 📋' : 'Quote Received! 📋'}</h1>
+            </div>
+            <div class="content">
+              <p>${es ? 'Hola' : 'Hello'} <strong>${data.nombre}</strong>,</p>
+              <p>${es ? 'Hemos recibido tu solicitud de cotización para el servicio:' : 'We have received your quote request for the service:'}</p>
+              <p><strong>${data.servicio}</strong></p>
+              <p>${es ? 'Nuestro equipo de especialistas revisará tu información y te contactará en las próximas 24 horas.' : 'Our team of specialists will review your information and contact you within the next 24 hours.'}</p>
+              <p><strong>${es ? 'Mensaje que nos enviaste:' : 'Your message:'}</strong></p>
+              <div class="mensaje">${data.mensaje}</div>
+              <p>${es ? '¡Gracias por confiar en PlusBitNova!' : 'Thank you for trusting PlusBitNova!'}</p>
+              <p style="color: #475569; font-size: 14px;">
+                <a href="mailto:gestion@plusbitnova.com" style="color: #2563eb;">gestion@plusbitnova.com</a>
+              </p>
+            </div>
           </div>
-        </div>
-      </body>
-      </html>
-    `
-  }),
+        </body>
+        </html>
+      `
+    };
+  },
 
+  // 👉 PLANTILLA: Admin cotización (siempre español)
   cotizacionAdmin: (data: any) => ({
     subject: `📋 Nueva cotización de ${data.nombre}`,
     html: `
@@ -219,6 +291,7 @@ const templates = {
               <p><strong>Email:</strong> ${data.email}</p>
               <p><strong>Teléfono:</strong> ${data.telefono}</p>
               <p><strong>Servicio:</strong> ${data.servicio}</p>
+              <p><strong>Idioma del cliente:</strong> ${data.idioma === 'en' ? 'Inglés' : 'Español'}</p>
             </div>
             <p><strong>Mensaje:</strong></p>
             <div class="info">${data.mensaje}</div>
@@ -252,6 +325,7 @@ export async function sendEmail({ to, template, data }: {
     }
 
     console.log(`📧 Enviando correo "${template}" a ${to}...`);
+    console.log('📧 Datos de la plantilla:', data);
 
     const templateData = templates[template](data);
     const from = process.env.EMAIL_FROM || 'PlusBitNova <gestion@plusbitnova.com>';
@@ -277,7 +351,7 @@ export async function sendEmail({ to, template, data }: {
 }
 
 // ============================================
-// ✅ FUNCIONES EXPORTADAS (SOLO FUNCIONES ASÍNCRONAS)
+// ✅ FUNCIONES EXPORTADAS
 // ============================================
 
 export async function sendPaymentConfirmation(data: {
@@ -286,6 +360,7 @@ export async function sendPaymentConfirmation(data: {
   orderId: string;
   amount: number;
   plan: string;
+  idioma?: string; // 👉 NUEVO PARÁMETRO
 }) {
   return sendEmail({
     to: data.to,
@@ -294,7 +369,8 @@ export async function sendPaymentConfirmation(data: {
       name: data.name,
       orderId: data.orderId,
       amount: data.amount,
-      plan: data.plan
+      plan: data.plan,
+      idioma: data.idioma || 'es' // 👉 PASAR IDIOMA
     }
   });
 }
@@ -305,6 +381,7 @@ export async function notifyAdmin(data: {
   customerEmail: string;
   amount: number;
   plan: string;
+  idioma?: string; // 👉 NUEVO PARÁMETRO
 }) {
   const adminEmail = process.env.ADMIN_EMAIL || 'gestion@plusbitnova.com';
   return sendEmail({
@@ -315,7 +392,8 @@ export async function notifyAdmin(data: {
       customerName: data.customerName,
       customerEmail: data.customerEmail,
       amount: data.amount,
-      plan: data.plan
+      plan: data.plan,
+      idioma: data.idioma || 'es' // 👉 PASAR IDIOMA
     }
   });
 }
@@ -323,48 +401,14 @@ export async function notifyAdmin(data: {
 export async function sendWelcomeEmail(data: {
   to: string;
   name: string;
+  idioma?: string; // 👉 NUEVO PARÁMETRO
 }) {
   return sendEmail({
     to: data.to,
     template: 'welcome',
-    data: { name: data.name }
+    data: { 
+      name: data.name,
+      idioma: data.idioma || 'es' // 👉 PASAR IDIOMA
+    }
   });
-}
-
-export async function sendCotizacionEmail(data: {
-  clienteEmail: string;
-  clienteNombre: string;
-  clienteTelefono: string;
-  clienteMensaje: string;
-  servicio: string;
-}) {
-  try {
-    await sendEmail({
-      to: data.clienteEmail,
-      template: 'cotizacionCliente',
-      data: {
-        nombre: data.clienteNombre,
-        servicio: data.servicio,
-        mensaje: data.clienteMensaje
-      }
-    });
-
-    const adminEmail = process.env.ADMIN_EMAIL || 'gestion@plusbitnova.com';
-    await sendEmail({
-      to: adminEmail,
-      template: 'cotizacionAdmin',
-      data: {
-        nombre: data.clienteNombre,
-        email: data.clienteEmail,
-        telefono: data.clienteTelefono,
-        servicio: data.servicio,
-        mensaje: data.clienteMensaje
-      }
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error('❌ Error enviando cotización:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Error desconocido' };
-  }
 }

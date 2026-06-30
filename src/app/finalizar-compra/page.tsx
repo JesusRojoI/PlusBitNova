@@ -13,7 +13,9 @@ import { CreditCard, Lock, CheckCircle, ChevronDown, ChevronUp } from "lucide-re
 import Image from "next/image";
 import { useTranslation } from "@/hooks/useTranslation";
 import { loadTranslations } from "@/services/translationService";
-import { sendPaymentConfirmationAction, notifyAdminAction } from '@/app/actions/email-actions';
+// 👉 CAMBIADO: nombres correctos de las funciones exportadas
+import { sendPaymentConfirmation, notifyAdmin } from '@/services/emailService';
+
 const CheckoutPage = () => {
   const router = useRouter();
   const { items, subtotal, iva, total, clear } = useCart();
@@ -234,13 +236,15 @@ const CheckoutPage = () => {
         clear();
         
         // ✅ ENVIAR CORREO DE CONFIRMACIÓN AL CLIENTE
-        try {
-          await sendPaymentConfirmationAction({
+        // 👉 CAMBIADO: sendPaymentConfirmationAction → sendPaymentConfirmation
+         try {
+          await sendPaymentConfirmation({
             to: formData.email,
             name: `${formData.nombre} ${formData.apellidos}`,
             orderId: result.orderId,
             amount: total,
-            plan: 'Cotización personalizada'
+            plan: 'Cotización personalizada',
+            idioma: language || 'es' // 👉 AGREGADO: pasar idioma actual
           });
           console.log('✅ Correo de confirmación enviado al cliente');
         } catch (emailError) {
@@ -249,12 +253,13 @@ const CheckoutPage = () => {
         
         // ✅ NOTIFICAR AL ADMINISTRADOR
         try {
-          await notifyAdminAction({
+          await notifyAdmin({
             orderId: result.orderId,
             customerName: `${formData.nombre} ${formData.apellidos}`,
             customerEmail: formData.email,
             amount: total,
-            plan: 'Cotización personalizada'
+            plan: 'Cotización personalizada',
+            idioma: language || 'es' // 👉 AGREGADO: pasar idioma actual
           });
           console.log('✅ Notificación al admin enviada');
         } catch (adminError) {

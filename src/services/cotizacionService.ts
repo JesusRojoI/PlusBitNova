@@ -12,8 +12,11 @@ export async function sendCotizacionEmail(data: {
   clienteTelefono: string;
   clienteMensaje: string;
   servicio: string;
+  idioma?: string; // 👉 AGREGAR PARÁMETRO IDIOMA
 }) {
   try {
+    const idioma = data.idioma || 'es'; // 👉 VALOR POR DEFECTO
+    
     // 1. Enviar al cliente (confirmación)
     await sendEmail({
       to: data.clienteEmail,
@@ -21,7 +24,8 @@ export async function sendCotizacionEmail(data: {
       data: {
         nombre: data.clienteNombre,
         servicio: data.servicio,
-        mensaje: data.clienteMensaje
+        mensaje: data.clienteMensaje,
+        idioma: idioma // 👉 PASAR IDIOMA A LA PLANTILLA
       }
     });
 
@@ -35,7 +39,8 @@ export async function sendCotizacionEmail(data: {
         email: data.clienteEmail,
         telefono: data.clienteTelefono,
         servicio: data.servicio,
-        mensaje: data.clienteMensaje
+        mensaje: data.clienteMensaje,
+        idioma: idioma // 👉 PASAR IDIOMA A LA PLANTILLA
       }
     });
 

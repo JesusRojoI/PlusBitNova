@@ -64,7 +64,8 @@ export function ContactModalProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { t } = useTranslation();
+  // 👉 CAMBIADO: usar 'language' en lugar de 'locale'
+  const { t, language } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -107,6 +108,10 @@ export function ContactModalProvider({
 
     try {
       const formData = new FormData(e.currentTarget);
+      
+      // 👉 CAMBIADO: usar 'language' en lugar de 'locale'
+      formData.append('idioma', language || 'es');
+      
       const result = await sendCotizacionAction(formData);
 
       if (result.success) {
@@ -157,6 +162,9 @@ export function ContactModalProvider({
             </div>
           ) : (
             <form className="space-y-4 px-7 py-7 bg-sw-navy" onSubmit={handleSubmit}>
+              {/* 👉 CAMBIADO: usar 'language' en lugar de 'locale' */}
+              <input type="hidden" name="idioma" value={language || 'es'} />
+              
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="cm-name" className="text-white/80 font-medium">
